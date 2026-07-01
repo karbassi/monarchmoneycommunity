@@ -3682,6 +3682,47 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def delete_transaction_rule(self, rule_id: str) -> bool:
+        """
+        Deletes a transaction rule.
+
+        :param rule_id: The ID of the rule to delete
+        :return: True if successfully deleted
+        """
+        query = gql(
+            """
+            mutation Common_DeleteTransactionRule($id: ID!) {
+                deleteTransactionRule(id: $id) {
+                    deleted
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        result = await self.gql_call(
+            operation="Common_DeleteTransactionRule",
+            graphql_query=query,
+            variables={"id": rule_id},
+        )
+
+        return result.get("deleteTransactionRule", {}).get("deleted", False)
+
     async def gql_call(
         self,
         operation: str,
