@@ -3682,6 +3682,95 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def create_transaction_rule(
+        self,
+        merchant_criteria: Optional[List[Dict[str, str]]] = None,
+        amount_criteria: Optional[Dict[str, Any]] = None,
+        category_ids: Optional[List[str]] = None,
+        account_ids: Optional[List[str]] = None,
+        set_category_action: Optional[str] = None,
+        add_tags_action: Optional[List[str]] = None,
+        split_transactions_action: Optional[Dict[str, Any]] = None,
+        apply_to_existing_transactions: bool = False,
+        merchant_criteria_use_original_statement: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Creates a new transaction rule for automatic categorization and actions.
+
+        :param merchant_criteria: List of merchant criteria, e.g.
+            [{"operator": "contains", "value": "amazon"}]
+        :param amount_criteria: Amount criteria, e.g.
+            {"operator": "eq", "isExpense": True, "value": 115.32};
+            for ranges {"operator": "between", "valueRange": {"lower": 100, "upper": 200}}
+        :param category_ids: List of category IDs to match
+        :param account_ids: List of account IDs to match
+        :param set_category_action: Category ID to set when the rule matches
+        :param add_tags_action: List of tag IDs to add when the rule matches
+        :param split_transactions_action: Split action configuration
+        :param apply_to_existing_transactions: Whether to apply to existing transactions
+        :param merchant_criteria_use_original_statement: Use original statement text
+        :return: The raw GraphQL payload, e.g. {"createTransactionRuleV2": {...}}
+        """
+        query = gql(
+            """
+            mutation Common_CreateTransactionRuleMutationV2($input: CreateTransactionRuleInput!) {
+                createTransactionRuleV2(input: $input) {
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    transactionRule {
+                        id
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        rule_input = {
+            "merchantCriteriaUseOriginalStatement": merchant_criteria_use_original_statement,
+            "applyToExistingTransactions": apply_to_existing_transactions,
+        }
+        if category_ids is not None:
+            rule_input["categoryIds"] = category_ids
+        if account_ids is not None:
+            rule_input["accountIds"] = account_ids
+        if merchant_criteria is not None:
+            rule_input["merchantCriteria"] = merchant_criteria
+        if amount_criteria is not None:
+            rule_input["amountCriteria"] = amount_criteria
+        if add_tags_action is not None:
+            rule_input["addTagsAction"] = add_tags_action
+        if split_transactions_action is not None:
+            rule_input["splitTransactionsAction"] = split_transactions_action
+        if set_category_action is not None:
+            rule_input["setCategoryAction"] = set_category_action
+
+        result = await self.gql_call(
+            operation="Common_CreateTransactionRuleMutationV2",
+            graphql_query=query,
+            variables={"input": rule_input},
+        )
+
+        errors = result.get("createTransactionRuleV2", {}).get("errors")
+        if errors:
+            raise RequestFailedException(errors)
+
+        return result
+
     async def gql_call(
         self,
         operation: str,

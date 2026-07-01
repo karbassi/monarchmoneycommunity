@@ -1,0 +1,10 @@
+{
+    "createTransactionRuleV2": {
+        "errors": null,
+        "transactionRule": {
+            "id": "160000000000000009",
+            "__typename": "TransactionRuleV2"
+        },
+        "__typename": "CreateTransactionRuleMutationV2"
+    }
+}
