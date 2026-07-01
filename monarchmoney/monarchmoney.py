@@ -3690,12 +3690,13 @@ class MonarchMoney(object):
         """
         Update an existing transaction rule to apply retroactively.
 
-        Takes a complete rule dict (the shape returned by the transaction-rules
-        listing) and re-submits it, defaulting ``applyToExistingTransactions`` to
-        True so the rule is applied to existing transactions.
+        Takes a rule dict (full or partial, e.g. the shape returned by the
+        transaction-rules listing) and re-submits it, always setting
+        ``applyToExistingTransactions`` from the argument (defaulting to True)
+        so the rule is applied to existing transactions.
 
-        :param rule_data: A complete rule dict (the shape returned by the
-            transaction-rules listing)
+        :param rule_data: A rule dict, full or partial (e.g. the shape returned
+            by the transaction-rules listing)
         :param apply_to_existing_transactions: Apply rule to existing transactions
         :return: Updated rule data
         """
@@ -3792,8 +3793,9 @@ class MonarchMoney(object):
             rule_input["splitTransactionsAction"] = clean_graphql_data(
                 rule_data.get("splitTransactionsAction")
             )
-        if "applyToExistingTransactions" in rule_data:
-            rule_input["applyToExistingTransactions"] = apply_to_existing_transactions
+        # Forcing this flag is the entire purpose of this method, so always set
+        # it from the argument regardless of whether rule_data included it.
+        rule_input["applyToExistingTransactions"] = apply_to_existing_transactions
 
         # Carry addTagsAction through (cleaned) only when present in rule_data.
         if "addTagsAction" in rule_data:

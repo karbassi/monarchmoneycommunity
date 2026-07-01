@@ -396,8 +396,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("splitTransactionsAction", rule_input)
         self.assertNotIn("addTagsAction", rule_input)
         self.assertNotIn("setCategoryAction", rule_input)
-        # applyToExistingTransactions is only sent when present in rule_data.
-        self.assertNotIn("applyToExistingTransactions", rule_input)
+        # applyToExistingTransactions is always sent (the point of this method),
+        # even for a minimal rule_data; it defaults to True.
+        self.assertTrue(rule_input["applyToExistingTransactions"])
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
