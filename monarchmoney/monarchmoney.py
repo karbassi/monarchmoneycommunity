@@ -3741,16 +3741,23 @@ class MonarchMoney(object):
         )
 
         rule_input = {
-            "categoryIds": category_ids,
-            "accountIds": account_ids,
-            "merchantCriteria": merchant_criteria,
-            "amountCriteria": amount_criteria,
             "merchantCriteriaUseOriginalStatement": merchant_criteria_use_original_statement,
-            "addTagsAction": add_tags_action,
-            "splitTransactionsAction": split_transactions_action,
             "applyToExistingTransactions": apply_to_existing_transactions,
-            "setCategoryAction": set_category_action,
         }
+        if category_ids is not None:
+            rule_input["categoryIds"] = category_ids
+        if account_ids is not None:
+            rule_input["accountIds"] = account_ids
+        if merchant_criteria is not None:
+            rule_input["merchantCriteria"] = merchant_criteria
+        if amount_criteria is not None:
+            rule_input["amountCriteria"] = amount_criteria
+        if add_tags_action is not None:
+            rule_input["addTagsAction"] = add_tags_action
+        if split_transactions_action is not None:
+            rule_input["splitTransactionsAction"] = split_transactions_action
+        if set_category_action is not None:
+            rule_input["setCategoryAction"] = set_category_action
 
         result = await self.gql_call(
             operation="Common_CreateTransactionRuleMutationV2",
@@ -3760,19 +3767,7 @@ class MonarchMoney(object):
 
         errors = result.get("createTransactionRuleV2", {}).get("errors")
         if errors:
-            if errors.get("message"):
-                raise Exception(
-                    f"Transaction rule creation failed: {errors['message']}"
-                )
-            elif errors.get("fieldErrors"):
-                field_errors = [
-                    f"{fe['field']}: {', '.join(fe['messages'])}"
-                    for fe in errors["fieldErrors"]
-                ]
-                raise Exception(
-                    f"Transaction rule creation failed: {'; '.join(field_errors)}"
-                )
-            # errors object present but all fields empty means success
+            raise RequestFailedException(errors)
 
         rule_data = result.get("createTransactionRuleV2", {}).get("transactionRule")
         if rule_data:

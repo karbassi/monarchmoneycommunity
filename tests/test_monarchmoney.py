@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -271,16 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the create_transaction_rule method.
         """
-        mock_execute_async.return_value = {
-            "createTransactionRuleV2": {
-                "errors": None,
-                "transactionRule": {
-                    "id": "160000000000000009",
-                    "__typename": "TransactionRuleV2",
-                },
-                "__typename": "CreateTransactionRuleMutationV2",
-            }
-        }
+        mock_execute_async.return_value = self.loadTestData(
+            "create_transaction_rule.json"
+        )
 
         result = await self.monarch_money.create_transaction_rule(
             merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
@@ -326,7 +319,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             }
         }
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(RequestFailedException):
             await self.monarch_money.create_transaction_rule(
                 merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
             )
