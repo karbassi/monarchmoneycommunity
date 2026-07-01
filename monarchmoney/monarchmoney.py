@@ -3682,6 +3682,115 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def get_transaction_rules(self) -> Dict[str, Any]:
+        """
+        Gets all transaction rules configured in the account.
+        Rules are returned in their priority order.
+        """
+        query = gql(
+            """
+            query GetTransactionRules {
+                transactionRules {
+                    id
+                    order
+                    ...TransactionRuleFields
+                    __typename
+                }
+            }
+
+            fragment TransactionRuleFields on TransactionRuleV2 {
+                id
+                merchantCriteriaUseOriginalStatement
+                merchantCriteria {
+                    operator
+                    value
+                    __typename
+                }
+                amountCriteria {
+                    operator
+                    isExpense
+                    value
+                    valueRange {
+                        lower
+                        upper
+                        __typename
+                    }
+                    __typename
+                }
+                categoryIds
+                accountIds
+                categories {
+                    id
+                    name
+                    icon
+                    __typename
+                }
+                accounts {
+                    id
+                    displayName
+                    icon
+                    logoUrl
+                    __typename
+                }
+                setMerchantAction {
+                    id
+                    name
+                    __typename
+                }
+                setCategoryAction {
+                    id
+                    name
+                    icon
+                    __typename
+                }
+                addTagsAction {
+                    id
+                    name
+                    color
+                    __typename
+                }
+                linkGoalAction {
+                    id
+                    name
+                    imageStorageProvider
+                    imageStorageProviderId
+                    __typename
+                }
+                needsReviewByUserAction {
+                    id
+                    name
+                    __typename
+                }
+                unassignNeedsReviewByUserAction
+                sendNotificationAction
+                setHideFromReportsAction
+                reviewStatusAction
+                recentApplicationCount
+                lastAppliedAt
+                splitTransactionsAction {
+                    amountType
+                    splitsInfo {
+                        categoryId
+                        merchantName
+                        amount
+                        goalId
+                        tags
+                        hideFromReports
+                        reviewStatus
+                        needsReviewByUserId
+                        __typename
+                    }
+                    __typename
+                }
+                __typename
+            }
+            """
+        )
+        return await self.gql_call(
+            operation="GetTransactionRules",
+            graphql_query=query,
+        )
+
     async def gql_call(
         self,
         operation: str,
