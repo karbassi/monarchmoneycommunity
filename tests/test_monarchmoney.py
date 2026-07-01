@@ -266,6 +266,34 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_get_merchants(self, mock_execute_async):
+        """
+        Test the get_merchants method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="get_merchants.json",
+        )
+        result = await self.monarch_money.get_merchants()
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "GetMerchantsSearch")
+
+        self.assertIsNotNone(result, "Expected result to not be None")
+        self.assertEqual(len(result["merchants"]), 2, "Expected 2 merchants")
+        self.assertEqual(
+            result["merchants"][0]["name"],
+            "Amazon",
+            "Expected first merchant to be 'Amazon'",
+        )
+        self.assertEqual(
+            result["merchants"][0]["transactionCount"],
+            142,
+            "Expected transactionCount to be 142",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
