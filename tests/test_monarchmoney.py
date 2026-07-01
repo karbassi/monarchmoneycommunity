@@ -272,7 +272,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         Test the delete_transaction_rule method.
         """
         mock_execute_async.return_value = TestMonarchMoney.loadTestData(
-            "delete_transaction_rule.json"
+            filename="delete_transaction_rule.json"
         )
 
         result = await self.monarch_money.delete_transaction_rule("160000000000000009")

@@ -3687,7 +3687,9 @@ class MonarchMoney(object):
         Deletes a transaction rule.
 
         :param rule_id: The ID of the rule to delete
-        :return: True if successfully deleted
+        :return: The API-reported ``deleted`` boolean. Returns ``False`` when the
+            API reports the rule was not deleted without an ``errors`` payload.
+            Raises ``RequestFailedException`` when the API returns errors.
         """
         query = gql(
             """
