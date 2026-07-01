@@ -3690,14 +3690,18 @@ class MonarchMoney(object):
         """
         Update an existing transaction rule to apply retroactively.
 
-        Takes a complete rule dict (as returned by ``get_transaction_rules``) and
-        re-submits it, defaulting ``applyToExistingTransactions`` to True so the
-        rule is applied to existing transactions.
+        Takes a complete rule dict (the shape returned by the transaction-rules
+        listing) and re-submits it, defaulting ``applyToExistingTransactions`` to
+        True so the rule is applied to existing transactions.
 
-        :param rule_data: Complete rule data from get_transaction_rules()
+        :param rule_data: A complete rule dict (the shape returned by the
+            transaction-rules listing)
         :param apply_to_existing_transactions: Apply rule to existing transactions
         :return: Updated rule data
         """
+        if not rule_data.get("id"):
+            raise ValueError("rule_data must include an 'id'")
+
         query = gql(
             """
             mutation Common_UpdateTransactionRuleMutationV2($input: UpdateTransactionRuleInput!) {
@@ -3795,14 +3799,7 @@ class MonarchMoney(object):
 
         errors = result.get("updateTransactionRuleV2", {}).get("errors")
         if errors and (errors.get("message") or errors.get("fieldErrors")):
-            if errors.get("message"):
-                raise Exception(f"Rule update failed: {errors['message']}")
-            elif errors.get("fieldErrors"):
-                field_errors = [
-                    f"{fe['field']}: {', '.join(fe['messages'])}"
-                    for fe in errors["fieldErrors"]
-                ]
-                raise Exception(f"Rule update failed: {'; '.join(field_errors)}")
+            raise RequestFailedException(errors)
 
         updated = result.get("updateTransactionRuleV2", {}).get("transactionRule")
         if updated:

@@ -264,7 +264,7 @@ As of writing this README, the following methods are supported:
     </tr>
     <tr>
       <td><code>update_transaction_rule_retroactive</code></td>
-      <td>re-submits an existing rule (from <code>get_transaction_rules</code>) so it applies to existing transactions</td>
+      <td>re-submits an existing rule dict so it applies to existing transactions</td>
     </tr>
     <tr>
       <td><code>set_transaction_tags</code></td>
