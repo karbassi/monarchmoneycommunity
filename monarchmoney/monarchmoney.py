@@ -3721,7 +3721,11 @@ class MonarchMoney(object):
             variables={"id": rule_id},
         )
 
-        return result.get("deleteTransactionRule", {}).get("deleted", False)
+        delete_result = result.get("deleteTransactionRule") or {}
+        if delete_result.get("errors"):
+            raise RequestFailedException(delete_result["errors"])
+
+        return delete_result.get("deleted", False)
 
     async def gql_call(
         self,

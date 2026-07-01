@@ -1,0 +1,7 @@
+{
+    "deleteTransactionRule": {
+        "deleted": true,
+        "errors": null,
+        "__typename": "DeleteTransactionRuleMutation"
+    }
+}
