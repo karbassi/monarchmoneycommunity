@@ -266,6 +266,71 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule(self, mock_execute_async):
+        """
+        Test the update_transaction_rule method.
+        """
+        mock_execute_async.return_value = {
+            "updateTransactionRuleV2": {
+                "errors": None,
+                "transactionRule": {
+                    "id": "160000000000000009",
+                    "setCategoryAction": "170000000000000010",
+                    "__typename": "TransactionRuleV2",
+                },
+                "__typename": "UpdateTransactionRuleMutationV2",
+            }
+        }
+
+        result = await self.monarch_money.update_transaction_rule(
+            rule_id="160000000000000009",
+            set_category_action="170000000000000010",
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(
+            kwargs["operation_name"], "Common_UpdateTransactionRuleMutationV2"
+        )
+        rule_input = kwargs["variable_values"]["input"]
+        self.assertEqual(rule_input["id"], "160000000000000009")
+        self.assertEqual(rule_input["setCategoryAction"], "170000000000000010")
+        # Only provided fields are sent
+        self.assertNotIn("merchantCriteria", rule_input)
+
+        self.assertEqual(
+            result["transactionRule"]["id"],
+            "160000000000000009",
+            "Expected the updated rule id to be returned",
+        )
+
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_raises_on_error(self, mock_execute_async):
+        """
+        Test that update_transaction_rule raises when the API returns an error.
+        """
+        mock_execute_async.return_value = {
+            "updateTransactionRuleV2": {
+                "errors": {
+                    "message": "Rule not found",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "transactionRule": None,
+                "__typename": "UpdateTransactionRuleMutationV2",
+            }
+        }
+
+        with self.assertRaises(Exception):
+            await self.monarch_money.update_transaction_rule(
+                rule_id="160000000000000009",
+                set_category_action="170000000000000010",
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
