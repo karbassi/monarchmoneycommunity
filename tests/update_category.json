@@ -1,0 +1,21 @@
+{
+    "updateCategory": {
+        "errors": null,
+        "category": {
+            "id": "170000000000000010",
+            "name": "Coffee & Tea",
+            "icon": "\u2615",
+            "group": {
+                "id": "180000000000000001",
+                "name": "Food",
+                "__typename": "CategoryGroup"
+            },
+            "rolloverEnabled": false,
+            "rolloverType": null,
+            "rolloverStartMonth": null,
+            "order": 3,
+            "__typename": "Category"
+        },
+        "__typename": "UpdateCategoryMutation"
+    }
+}
