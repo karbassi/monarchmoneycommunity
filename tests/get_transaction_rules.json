@@ -7,8 +7,7 @@
       "merchantCriteria": [
         {
           "operator": "contains",
-          "value": "Starbucks",
-          "__typename": "MerchantCriterion"
+          "value": "Starbucks"
         }
       ],
       "amountCriteria": null,
@@ -20,8 +19,7 @@
       "setCategoryAction": {
         "id": "170000000000000010",
         "name": "Coffee Shops",
-        "icon": "\u2615",
-        "__typename": "Category"
+        "icon": "\u2615"
       },
       "addTagsAction": [],
       "linkGoalAction": null,
@@ -32,8 +30,7 @@
       "reviewStatusAction": null,
       "recentApplicationCount": 12,
       "lastAppliedAt": "2026-06-01T00:00:00+00:00",
-      "splitTransactionsAction": null,
-      "__typename": "TransactionRuleV2"
+      "splitTransactionsAction": null
     },
     {
       "id": "160000000000000002",
@@ -42,8 +39,7 @@
       "merchantCriteria": [
         {
           "operator": "contains",
-          "value": "Shell",
-          "__typename": "MerchantCriterion"
+          "value": "Shell"
         }
       ],
       "amountCriteria": null,
@@ -55,8 +51,7 @@
       "setCategoryAction": {
         "id": "170000000000000020",
         "name": "Gas",
-        "icon": "\u26fd",
-        "__typename": "Category"
+        "icon": "\u26fd"
       },
       "addTagsAction": [],
       "linkGoalAction": null,
@@ -67,8 +62,7 @@
       "reviewStatusAction": null,
       "recentApplicationCount": 3,
       "lastAppliedAt": "2026-06-15T00:00:00+00:00",
-      "splitTransactionsAction": null,
-      "__typename": "TransactionRuleV2"
+      "splitTransactionsAction": null
     }
   ]
 }

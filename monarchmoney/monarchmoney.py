@@ -3702,7 +3702,6 @@ class MonarchMoney(object):
                 merchantCriteria {
                     operator
                     value
-                    __typename
                 }
                 amountCriteria {
                     operator
@@ -3711,9 +3710,7 @@ class MonarchMoney(object):
                     valueRange {
                         lower
                         upper
-                        __typename
                     }
-                    __typename
                 }
                 categoryIds
                 accountIds
@@ -3721,43 +3718,36 @@ class MonarchMoney(object):
                     id
                     name
                     icon
-                    __typename
                 }
                 accounts {
                     id
                     displayName
                     icon
                     logoUrl
-                    __typename
                 }
                 setMerchantAction {
                     id
                     name
-                    __typename
                 }
                 setCategoryAction {
                     id
                     name
                     icon
-                    __typename
                 }
                 addTagsAction {
                     id
                     name
                     color
-                    __typename
                 }
                 linkGoalAction {
                     id
                     name
                     imageStorageProvider
                     imageStorageProviderId
-                    __typename
                 }
                 needsReviewByUserAction {
                     id
                     name
-                    __typename
                 }
                 unassignNeedsReviewByUserAction
                 sendNotificationAction
@@ -3776,11 +3766,8 @@ class MonarchMoney(object):
                         hideFromReports
                         reviewStatus
                         needsReviewByUserId
-                        __typename
                     }
-                    __typename
                 }
-                __typename
             }
             """
         )
