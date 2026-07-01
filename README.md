@@ -247,6 +247,10 @@ As of writing this README, the following methods are supported:
       <td>modifies one or more attributes for an existing transaction</td>
     </tr>
     <tr>
+      <td><code>bulk_update_transactions</code></td>
+      <td>applies the same set of updates to many transactions at once (e.g. hide, recategorize)</td>
+    </tr>
+    <tr>
       <td><code>update_reoccuring</code></td>
       <td>updates recurring merchant settings (frequency, amount, date, active status)</td>
     </tr>

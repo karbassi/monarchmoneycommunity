@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -265,6 +265,96 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
+
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions(self, mock_execute_async):
+        """
+        Test the bulk_update_transactions method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "bulk_update_transactions.json"
+        )
+
+        result = await self.monarch_money.bulk_update_transactions(
+            transaction_ids=["1", "2", "3"],
+            updates={"hide": True},
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(
+            kwargs["operation_name"], "Common_BulkUpdateTransactionsMutation"
+        )
+        variables = kwargs["variable_values"]
+        self.assertEqual(variables["selectedTransactionIds"], ["1", "2", "3"])
+        self.assertEqual(variables["updates"], {"hide": True})
+        self.assertFalse(variables["allSelected"])
+        self.assertEqual(variables["expectedAffectedTransactionCount"], 3)
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["affectedCount"], 3)
+
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions_raises_on_error(self, mock_execute_async):
+        """
+        Test that bulk_update_transactions raises when the API returns errors.
+        """
+        mock_execute_async.return_value = {
+            "bulkUpdateTransactions": {
+                "success": False,
+                "affectedCount": 0,
+                "errors": [{"message": "boom", "__typename": "PayloadError"}],
+                "__typename": "BulkUpdateTransactionsMutation",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}
+            )
+
+    async def test_bulk_update_transactions_requires_ids(self):
+        """
+        Test that bulk_update_transactions rejects an empty id list.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=[], updates={"hide": True}
+            )
+
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions_excludes_ids(self, mock_execute_async):
+        """
+        Test that bulk_update_transactions honors excluded_transaction_ids.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "bulk_update_transactions.json"
+        )
+
+        await self.monarch_money.bulk_update_transactions(
+            transaction_ids=["1", "2", "3"],
+            excluded_transaction_ids=["2"],
+            updates={"hide": True},
+        )
+
+        variables = mock_execute_async.call_args.kwargs["variable_values"]
+        self.assertEqual(variables["excludedTransactionIds"], ["2"])
+        self.assertEqual(variables["expectedAffectedTransactionCount"], 2)
+
+    async def test_bulk_update_transactions_validates_all_selected_and_filters(self):
+        """
+        Test that bulk_update_transactions rejects invalid all_selected/filters.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}, all_selected="yes"
+            )
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}, filters=["bad"]
+            )
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
