@@ -3705,7 +3705,7 @@ class MonarchMoney(object):
             variables={},
         )
 
-        return result.get("deleteAllTransactionRules", {}).get("deleted", False)
+        return (result.get("deleteAllTransactionRules") or {}).get("deleted", False)
 
     async def gql_call(
         self,
