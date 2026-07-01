@@ -150,6 +150,10 @@ As of writing this README, the following methods are supported:
       <td>all the budgets and the corresponding actual amounts</td>
     </tr>
     <tr>
+      <td><code>get_goals</code></td>
+      <td>gets financial goals configured in the account</td>
+    </tr>
+    <tr>
       <td><code>get_credit_history</code></td>
       <td>gets credit score snapshots and Spinwheel user details</td>
     </tr>
