@@ -20,7 +20,7 @@
       "setCategoryAction": {
         "id": "170000000000000010",
         "name": "Coffee Shops",
-        "icon": "☕",
+        "icon": "\u2615",
         "__typename": "Category"
       },
       "addTagsAction": [],
@@ -55,7 +55,7 @@
       "setCategoryAction": {
         "id": "170000000000000020",
         "name": "Gas",
-        "icon": "⛽",
+        "icon": "\u26fd",
         "__typename": "Category"
       },
       "addTagsAction": [],
