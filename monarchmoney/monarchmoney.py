@@ -3682,6 +3682,119 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def preview_transaction_rule(
+        self,
+        merchant_criteria: Optional[List[Dict[str, str]]] = None,
+        amount_criteria: Optional[Dict[str, Any]] = None,
+        category_ids: Optional[List[str]] = None,
+        account_ids: Optional[List[str]] = None,
+        set_category_action: Optional[str] = None,
+        add_tags_action: Optional[List[str]] = None,
+        set_merchant_action: Optional[str] = None,
+        split_transactions_action: Optional[Dict[str, Any]] = None,
+        apply_to_existing_transactions: bool = False,
+        merchant_criteria_use_original_statement: bool = False,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """
+        Previews which transactions would be affected by a rule before creating it.
+
+        :param merchant_criteria: List of merchant criteria, e.g.
+            [{"operator": "contains", "value": "amazon"}]
+        :param amount_criteria: Amount criteria, e.g.
+            {"operator": "gt", "isExpense": True, "value": 20}
+        :param category_ids: List of category IDs to match
+        :param account_ids: List of account IDs to match
+        :param set_category_action: Category ID to set when the rule matches
+        :param add_tags_action: List of tag IDs to add when the rule matches
+        :param set_merchant_action: Merchant ID to set when the rule matches
+        :param split_transactions_action: Split action configuration
+        :param apply_to_existing_transactions: Whether to apply to existing transactions
+        :param merchant_criteria_use_original_statement: Use original statement text
+        :param offset: Pagination offset for results
+        :return: Preview results showing affected transactions
+        """
+        query = gql(
+            """
+            query PreviewTransactionRule($rule: TransactionRulePreviewInput!, $offset: Int) {
+                transactionRulePreview(input: $rule) {
+                    totalCount
+                    results(offset: $offset, limit: 30) {
+                        newName
+                        newSplitTransactions
+                        newCategory {
+                            id
+                            icon
+                            name
+                            __typename
+                        }
+                        newHideFromReports
+                        newTags {
+                            id
+                            name
+                            color
+                            order
+                            __typename
+                        }
+                        newGoal {
+                            id
+                            name
+                            imageStorageProvider
+                            imageStorageProviderId
+                            __typename
+                        }
+                        transaction {
+                            id
+                            date
+                            amount
+                            merchant {
+                                id
+                                name
+                                __typename
+                            }
+                            category {
+                                id
+                                name
+                                icon
+                                __typename
+                            }
+                            __typename
+                        }
+                        __typename
+                    }
+                    __typename
+                }
+            }
+            """
+        )
+
+        rule_input: Dict[str, Any] = {
+            "merchantCriteriaUseOriginalStatement": merchant_criteria_use_original_statement,
+            "applyToExistingTransactions": apply_to_existing_transactions,
+        }
+        if merchant_criteria is not None:
+            rule_input["merchantCriteria"] = merchant_criteria
+        if amount_criteria is not None:
+            rule_input["amountCriteria"] = amount_criteria
+        if category_ids is not None:
+            rule_input["categoryIds"] = category_ids
+        if account_ids is not None:
+            rule_input["accountIds"] = account_ids
+        if set_category_action is not None:
+            rule_input["setCategoryAction"] = set_category_action
+        if add_tags_action is not None:
+            rule_input["addTagsAction"] = add_tags_action
+        if set_merchant_action is not None:
+            rule_input["setMerchantAction"] = set_merchant_action
+        if split_transactions_action is not None:
+            rule_input["splitTransactionsAction"] = split_transactions_action
+
+        return await self.gql_call(
+            operation="PreviewTransactionRule",
+            graphql_query=query,
+            variables={"rule": rule_input, "offset": offset},
+        )
+
     async def gql_call(
         self,
         operation: str,

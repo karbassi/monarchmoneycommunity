@@ -266,6 +266,44 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_preview_transaction_rule(self, mock_execute_async):
+        """
+        Test the preview_transaction_rule method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="preview_transaction_rule.json",
+        )
+
+        result = await self.monarch_money.preview_transaction_rule(
+            merchant_criteria=[{"operator": "contains", "value": "Starbucks"}],
+            set_category_action="170000000000000010",
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "PreviewTransactionRule")
+        variables = kwargs["variable_values"]
+        self.assertEqual(variables["offset"], 0)
+        self.assertEqual(
+            variables["rule"]["merchantCriteria"],
+            [{"operator": "contains", "value": "Starbucks"}],
+        )
+        self.assertEqual(variables["rule"]["setCategoryAction"], "170000000000000010")
+
+        self.assertEqual(
+            result["transactionRulePreview"]["totalCount"],
+            2,
+            "Expected preview to report 2 affected transactions",
+        )
+        self.assertEqual(
+            result["transactionRulePreview"]["results"][0]["newCategory"]["name"],
+            "Coffee Shops",
+            "Expected the previewed new category to be 'Coffee Shops'",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
