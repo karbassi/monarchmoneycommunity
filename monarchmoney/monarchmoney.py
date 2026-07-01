@@ -3459,10 +3459,12 @@ class MonarchMoney(object):
         """
         Updates a merchant's name and/or recurring transaction settings.
 
-        Only the fields provided are sent.
+        Only the fields provided are sent, so at least one of ``name`` or a
+        recurrence attribute (``is_recurring``, ``frequency``, ``base_date``,
+        ``amount``, ``is_active``) must be provided.
 
         :param merchant_id: The merchant id to update.
-        :param name: The merchant name.
+        :param name: The new merchant name. Optional; omit to leave unchanged.
         :param is_recurring: Whether the merchant should be marked recurring.
         :param frequency: The recurrence frequency (e.g. monthly).
         :param base_date: The recurrence start date in YYYY-MM-DD format.

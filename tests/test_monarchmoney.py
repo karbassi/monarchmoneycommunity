@@ -330,6 +330,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             is_recurring=True,
         )
 
+        mock_execute_async.assert_called_once()
         kwargs = mock_execute_async.call_args.kwargs
         self.assertEqual(kwargs["operation_name"], "Common_UpdateMerchant")
         rule_input = kwargs["variable_values"]["input"]
