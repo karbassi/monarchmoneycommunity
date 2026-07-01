@@ -3687,9 +3687,7 @@ class MonarchMoney(object):
         Deletes a transaction rule.
 
         :param rule_id: The ID of the rule to delete
-        :return: The API-reported ``deleted`` boolean. Returns ``False`` when the
-            API reports the rule was not deleted without an ``errors`` payload.
-            Raises ``RequestFailedException`` when the API returns errors.
+        :return: ``True`` on success. Raises ``RequestFailedException`` otherwise.
         """
         query = gql(
             """
@@ -3723,11 +3721,11 @@ class MonarchMoney(object):
             variables={"id": rule_id},
         )
 
-        delete_result = result.get("deleteTransactionRule") or {}
-        if delete_result.get("errors"):
-            raise RequestFailedException(delete_result["errors"])
+        payload = result.get("deleteTransactionRule") or {}
+        if not payload.get("deleted"):
+            raise RequestFailedException(payload.get("errors"))
 
-        return delete_result.get("deleted", False)
+        return True
 
     async def gql_call(
         self,
