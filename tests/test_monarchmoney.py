@@ -266,6 +266,71 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_create_transaction_rule(self, mock_execute_async):
+        """
+        Test the create_transaction_rule method.
+        """
+        mock_execute_async.return_value = {
+            "createTransactionRuleV2": {
+                "errors": None,
+                "transactionRule": {
+                    "id": "160000000000000009",
+                    "__typename": "TransactionRuleV2",
+                },
+                "__typename": "CreateTransactionRuleMutationV2",
+            }
+        }
+
+        result = await self.monarch_money.create_transaction_rule(
+            merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
+            set_category_action="170000000000000010",
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(
+            kwargs["operation_name"], "Common_CreateTransactionRuleMutationV2"
+        )
+        rule_input = kwargs["variable_values"]["input"]
+        self.assertEqual(
+            rule_input["merchantCriteria"],
+            [{"operator": "contains", "value": "Amazon"}],
+        )
+        self.assertEqual(rule_input["setCategoryAction"], "170000000000000010")
+        self.assertFalse(rule_input["applyToExistingTransactions"])
+
+        self.assertEqual(
+            result["transactionRule"]["id"],
+            "160000000000000009",
+            "Expected the created rule id to be returned",
+        )
+
+    @patch.object(Client, "execute_async")
+    async def test_create_transaction_rule_raises_on_error(self, mock_execute_async):
+        """
+        Test that create_transaction_rule raises when the API returns an error.
+        """
+        mock_execute_async.return_value = {
+            "createTransactionRuleV2": {
+                "errors": {
+                    "message": "Invalid rule",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "transactionRule": None,
+                "__typename": "CreateTransactionRuleMutationV2",
+            }
+        }
+
+        with self.assertRaises(Exception):
+            await self.monarch_money.create_transaction_rule(
+                merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"

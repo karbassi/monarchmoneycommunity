@@ -3682,6 +3682,103 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def create_transaction_rule(
+        self,
+        merchant_criteria: Optional[List[Dict[str, str]]] = None,
+        amount_criteria: Optional[Dict[str, Any]] = None,
+        category_ids: Optional[List[str]] = None,
+        account_ids: Optional[List[str]] = None,
+        set_category_action: Optional[str] = None,
+        add_tags_action: Optional[List[str]] = None,
+        split_transactions_action: Optional[Dict[str, Any]] = None,
+        apply_to_existing_transactions: bool = False,
+        merchant_criteria_use_original_statement: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Creates a new transaction rule for automatic categorization and actions.
+
+        :param merchant_criteria: List of merchant criteria, e.g.
+            [{"operator": "contains", "value": "amazon"}]
+        :param amount_criteria: Amount criteria, e.g.
+            {"operator": "eq", "isExpense": True, "value": 115.32};
+            for ranges {"operator": "between", "valueRange": {"lower": 100, "upper": 200}}
+        :param category_ids: List of category IDs to match
+        :param account_ids: List of account IDs to match
+        :param set_category_action: Category ID to set when the rule matches
+        :param add_tags_action: List of tag IDs to add when the rule matches
+        :param split_transactions_action: Split action configuration
+        :param apply_to_existing_transactions: Whether to apply to existing transactions
+        :param merchant_criteria_use_original_statement: Use original statement text
+        :return: The created rule data
+        """
+        query = gql(
+            """
+            mutation Common_CreateTransactionRuleMutationV2($input: CreateTransactionRuleInput!) {
+                createTransactionRuleV2(input: $input) {
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    transactionRule {
+                        id
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        rule_input = {
+            "categoryIds": category_ids,
+            "accountIds": account_ids,
+            "merchantCriteria": merchant_criteria,
+            "amountCriteria": amount_criteria,
+            "merchantCriteriaUseOriginalStatement": merchant_criteria_use_original_statement,
+            "addTagsAction": add_tags_action,
+            "splitTransactionsAction": split_transactions_action,
+            "applyToExistingTransactions": apply_to_existing_transactions,
+            "setCategoryAction": set_category_action,
+        }
+
+        result = await self.gql_call(
+            operation="Common_CreateTransactionRuleMutationV2",
+            graphql_query=query,
+            variables={"input": rule_input},
+        )
+
+        errors = result.get("createTransactionRuleV2", {}).get("errors")
+        if errors:
+            if errors.get("message"):
+                raise Exception(
+                    f"Transaction rule creation failed: {errors['message']}"
+                )
+            elif errors.get("fieldErrors"):
+                field_errors = [
+                    f"{fe['field']}: {', '.join(fe['messages'])}"
+                    for fe in errors["fieldErrors"]
+                ]
+                raise Exception(
+                    f"Transaction rule creation failed: {'; '.join(field_errors)}"
+                )
+            # errors object present but all fields empty means success
+
+        rule_data = result.get("createTransactionRuleV2", {}).get("transactionRule")
+        if rule_data:
+            return {"transactionRule": rule_data}
+        return result
+
     async def gql_call(
         self,
         operation: str,
