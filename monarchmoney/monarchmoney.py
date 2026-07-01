@@ -3691,10 +3691,8 @@ class MonarchMoney(object):
             """
             query GetTransactionRules {
                 transactionRules {
-                    id
                     order
                     ...TransactionRuleFields
-                    __typename
                 }
             }
 
