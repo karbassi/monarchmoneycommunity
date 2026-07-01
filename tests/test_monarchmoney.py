@@ -289,11 +289,11 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertIn("request", kwargs)
         self.assertNotIn("document", kwargs)
         self.assertEqual(kwargs["operation_name"], "Common_UpdateMerchant")
-        rule_input = kwargs["variable_values"]["input"]
-        self.assertEqual(rule_input["merchantId"], "190000000000000001")
-        self.assertEqual(rule_input["name"], "Netflix")
+        merchant_input = kwargs["variable_values"]["input"]
+        self.assertEqual(merchant_input["merchantId"], "190000000000000001")
+        self.assertEqual(merchant_input["name"], "Netflix")
         self.assertEqual(
-            rule_input["recurrence"],
+            merchant_input["recurrence"],
             {
                 "isRecurring": True,
                 "frequency": "monthly",
@@ -333,10 +333,10 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         mock_execute_async.assert_awaited_once()
         kwargs = mock_execute_async.call_args.kwargs
         self.assertEqual(kwargs["operation_name"], "Common_UpdateMerchant")
-        rule_input = kwargs["variable_values"]["input"]
-        self.assertEqual(rule_input["merchantId"], "190000000000000001")
-        self.assertEqual(rule_input["name"], "Netflix")
-        self.assertEqual(rule_input["recurrence"], {"isRecurring": True})
+        merchant_input = kwargs["variable_values"]["input"]
+        self.assertEqual(merchant_input["merchantId"], "190000000000000001")
+        self.assertEqual(merchant_input["name"], "Netflix")
+        self.assertEqual(merchant_input["recurrence"], {"isRecurring": True})
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
