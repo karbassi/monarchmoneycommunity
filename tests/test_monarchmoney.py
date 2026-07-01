@@ -271,27 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the update_transaction_category method.
         """
-        mock_execute_async.return_value = {
-            "updateCategory": {
-                "errors": None,
-                "category": {
-                    "id": "170000000000000010",
-                    "name": "Coffee & Tea",
-                    "icon": "☕",
-                    "group": {
-                        "id": "180000000000000001",
-                        "name": "Food",
-                        "__typename": "CategoryGroup",
-                    },
-                    "rolloverEnabled": False,
-                    "rolloverType": None,
-                    "rolloverStartMonth": None,
-                    "order": 3,
-                    "__typename": "Category",
-                },
-                "__typename": "UpdateCategoryMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_category.json"
+        )
 
         result = await self.monarch_money.update_transaction_category(
             category_id="170000000000000010",
