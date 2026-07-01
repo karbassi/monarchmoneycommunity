@@ -3712,7 +3712,8 @@ class MonarchMoney(object):
         :param split_transactions_action: Split action configuration
         :param apply_to_existing_transactions: Whether to apply to existing transactions
         :param merchant_criteria_use_original_statement: Use original statement text
-        :return: The updated rule data
+        :return: The raw GraphQL mutation payload, e.g.
+            {"updateTransactionRuleV2": {"transactionRule": {...}, "errors": None}}
         """
         query = gql(
             """
@@ -3796,17 +3797,11 @@ class MonarchMoney(object):
             variables={"input": rule_input},
         )
 
-        mutation = result.get("updateTransactionRuleV2") or {}
-        errors = mutation.get("errors")
+        errors = (result.get("updateTransactionRuleV2") or {}).get("errors")
         if errors:
             raise RequestFailedException(errors)
 
-        rule_data = mutation.get("transactionRule")
-        if not rule_data:
-            raise RequestFailedException(
-                f"Transaction rule update for {rule_id} returned no rule"
-            )
-        return {"transactionRule": rule_data}
+        return result
 
     async def gql_call(
         self,

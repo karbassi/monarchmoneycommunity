@@ -294,7 +294,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("merchantCriteria", rule_input)
 
         self.assertEqual(
-            result["transactionRule"]["id"],
+            result["updateTransactionRuleV2"]["transactionRule"]["id"],
             "160000000000000009",
             "Expected the updated rule id to be returned",
         )
