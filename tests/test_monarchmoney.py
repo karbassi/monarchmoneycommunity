@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -285,6 +285,27 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(kwargs["variable_values"], {"id": "160000000000000009"})
 
         self.assertTrue(result, "Expected delete to return True")
+
+    @patch.object(Client, "execute_async")
+    async def test_delete_transaction_rule_raises_on_failure(self, mock_execute_async):
+        """
+        Test that delete_transaction_rule raises when the mutation reports failure.
+        """
+        mock_execute_async.return_value = {
+            "deleteTransactionRule": {
+                "deleted": False,
+                "errors": {
+                    "message": "not found",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "__typename": "DeleteTransactionRuleMutation",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.delete_transaction_rule("160000000000000009")
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
