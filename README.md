@@ -252,7 +252,7 @@ As of writing this README, the following methods are supported:
     </tr>
     <tr>
       <td><code>update_reoccuring</code></td>
-      <td>updates recurring merchant settings (frequency, amount, date, active status); thin wrapper over <code>update_merchant</code></td>
+      <td>updates recurring merchant settings (frequency, amount, date, active status); legacy alias kept for backwards compatibility, new code should prefer <code>update_merchant</code></td>
     </tr>
     <tr>
       <td><code>delete_transaction</code></td>
