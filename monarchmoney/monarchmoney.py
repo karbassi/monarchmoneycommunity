@@ -3709,7 +3709,7 @@ class MonarchMoney(object):
         :param split_transactions_action: Split action configuration
         :param apply_to_existing_transactions: Whether to apply to existing transactions
         :param merchant_criteria_use_original_statement: Use original statement text
-        :return: The created rule data
+        :return: The raw GraphQL payload, e.g. {"createTransactionRuleV2": {...}}
         """
         query = gql(
             """
@@ -3769,10 +3769,7 @@ class MonarchMoney(object):
         if errors:
             raise RequestFailedException(errors)
 
-        rule_data = result.get("createTransactionRuleV2", {}).get("transactionRule")
-        if not rule_data:
-            raise RequestFailedException("Transaction rule creation returned no rule")
-        return {"transactionRule": rule_data}
+        return result
 
     async def gql_call(
         self,

@@ -296,7 +296,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(rule_input["applyToExistingTransactions"])
 
         self.assertEqual(
-            result["transactionRule"]["id"],
+            result["createTransactionRuleV2"]["transactionRule"]["id"],
             "160000000000000009",
             "Expected the created rule id to be returned",
         )
@@ -314,27 +314,6 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
                     "code": None,
                     "__typename": "PayloadError",
                 },
-                "transactionRule": None,
-                "__typename": "CreateTransactionRuleMutationV2",
-            }
-        }
-
-        with self.assertRaises(RequestFailedException):
-            await self.monarch_money.create_transaction_rule(
-                merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
-            )
-
-    @patch.object(Client, "execute_async")
-    async def test_create_transaction_rule_raises_when_no_rule(
-        self, mock_execute_async
-    ):
-        """
-        Test that create_transaction_rule raises when the API returns no rule
-        and no errors.
-        """
-        mock_execute_async.return_value = {
-            "createTransactionRuleV2": {
-                "errors": None,
                 "transactionRule": None,
                 "__typename": "CreateTransactionRuleMutationV2",
             }
