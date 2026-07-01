@@ -247,8 +247,12 @@ As of writing this README, the following methods are supported:
       <td>modifies one or more attributes for an existing transaction</td>
     </tr>
     <tr>
+      <td><code>update_merchant</code></td>
+      <td>updates a merchant's name and/or recurring transaction settings</td>
+    </tr>
+    <tr>
       <td><code>update_reoccuring</code></td>
-      <td>updates recurring merchant settings (frequency, amount, date, active status)</td>
+      <td>updates recurring merchant settings (frequency, amount, date, active status); thin wrapper over <code>update_merchant</code></td>
     </tr>
     <tr>
       <td><code>delete_transaction</code></td>
