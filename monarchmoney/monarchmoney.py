@@ -3713,10 +3713,14 @@ class MonarchMoney(object):
             excluded_transaction_ids, list
         ):
             raise ValueError("excluded_transaction_ids must be a list")
+        if not isinstance(all_selected, bool):
+            raise ValueError("all_selected must be a bool")
+        if filters is not None and not isinstance(filters, dict):
+            raise ValueError("filters must be a dictionary")
 
         excluded = excluded_transaction_ids or []
         excluded_set = set(excluded)
-        expected_count = len([t for t in transaction_ids if t not in excluded_set])
+        expected_count = sum(1 for t in transaction_ids if t not in excluded_set)
 
         query = gql(
             """

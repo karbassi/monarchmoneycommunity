@@ -343,6 +343,19 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(variables["excludedTransactionIds"], ["2"])
         self.assertEqual(variables["expectedAffectedTransactionCount"], 2)
 
+    async def test_bulk_update_transactions_validates_all_selected_and_filters(self):
+        """
+        Test that bulk_update_transactions rejects invalid all_selected/filters.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}, all_selected="yes"
+            )
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}, filters=["bad"]
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
