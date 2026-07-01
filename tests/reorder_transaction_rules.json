@@ -1,0 +1,21 @@
+{
+    "updateTransactionRuleOrderV2": {
+        "transactionRules": [
+            {
+                "id": "160000000000000002",
+                "order": 0,
+                "merchantCriteria": [],
+                "setCategoryAction": null,
+                "__typename": "TransactionRuleV2"
+            },
+            {
+                "id": "160000000000000001",
+                "order": 1,
+                "merchantCriteria": [],
+                "setCategoryAction": null,
+                "__typename": "TransactionRuleV2"
+            }
+        ],
+        "__typename": "UpdateTransactionRuleOrderMutation"
+    }
+}

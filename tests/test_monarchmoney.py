@@ -271,27 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the reorder_transaction_rules method.
         """
-        mock_execute_async.return_value = {
-            "updateTransactionRuleOrderV2": {
-                "transactionRules": [
-                    {
-                        "id": "160000000000000002",
-                        "order": 0,
-                        "merchantCriteria": [],
-                        "setCategoryAction": None,
-                        "__typename": "TransactionRuleV2",
-                    },
-                    {
-                        "id": "160000000000000001",
-                        "order": 1,
-                        "merchantCriteria": [],
-                        "setCategoryAction": None,
-                        "__typename": "TransactionRuleV2",
-                    },
-                ],
-                "__typename": "UpdateTransactionRuleOrderMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "reorder_transaction_rules.json"
+        )
 
         result = await self.monarch_money.reorder_transaction_rules(
             rule_id="160000000000000002", new_order=0
