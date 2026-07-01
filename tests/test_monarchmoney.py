@@ -266,6 +266,57 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_category(self, mock_execute_async):
+        """
+        Test the update_transaction_category method.
+        """
+        mock_execute_async.return_value = {
+            "updateCategory": {
+                "errors": None,
+                "category": {
+                    "id": "170000000000000010",
+                    "name": "Coffee & Tea",
+                    "icon": "☕",
+                    "group": {
+                        "id": "180000000000000001",
+                        "name": "Food",
+                        "__typename": "CategoryGroup",
+                    },
+                    "rolloverEnabled": False,
+                    "rolloverType": None,
+                    "rolloverStartMonth": None,
+                    "order": 3,
+                    "__typename": "Category",
+                },
+                "__typename": "UpdateCategoryMutation",
+            }
+        }
+
+        result = await self.monarch_money.update_transaction_category(
+            category_id="170000000000000010",
+            name="Coffee & Tea",
+            icon="☕",
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "Web_UpdateCategory")
+        input_data = kwargs["variable_values"]["input"]
+        self.assertEqual(input_data["id"], "170000000000000010")
+        self.assertEqual(input_data["name"], "Coffee & Tea")
+        self.assertEqual(input_data["icon"], "☕")
+        # Only provided fields are sent
+        self.assertNotIn("rolloverEnabled", input_data)
+
+        self.assertEqual(
+            result["updateCategory"]["category"]["name"],
+            "Coffee & Tea",
+            "Expected the updated category name to be returned",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
