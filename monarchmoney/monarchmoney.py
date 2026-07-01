@@ -3682,6 +3682,48 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def reorder_transaction_rules(
+        self, rule_id: str, new_order: int
+    ) -> Dict[str, Any]:
+        """
+        Updates the order (priority) of a transaction rule.
+
+        :param rule_id: The ID of the rule to reorder
+        :param new_order: The new order position for the rule
+        :return: The updated rules data
+        """
+        query = gql(
+            """
+            mutation Web_UpdateRuleOrderMutation($id: ID!, $order: Int!) {
+                updateTransactionRuleOrderV2(id: $id, order: $order) {
+                    transactionRules {
+                        id
+                        order
+                        merchantCriteria {
+                            operator
+                            value
+                            __typename
+                        }
+                        setCategoryAction {
+                            id
+                            name
+                            icon
+                            __typename
+                        }
+                        __typename
+                    }
+                    __typename
+                }
+            }
+            """
+        )
+
+        return await self.gql_call(
+            operation="Web_UpdateRuleOrderMutation",
+            graphql_query=query,
+            variables={"id": rule_id, "order": new_order},
+        )
+
     async def gql_call(
         self,
         operation: str,
