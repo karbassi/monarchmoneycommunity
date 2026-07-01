@@ -3745,16 +3745,25 @@ class MonarchMoney(object):
             variables={"input": goal_input},
         )
 
-        errors = result.get("createGoal", {}).get("errors")
+        create_goal = result.get("createGoal", {})
+        errors = create_goal.get("errors")
         if errors:
             if errors.get("message"):
-                raise Exception(f"Goal creation failed: {errors['message']}")
+                raise RequestFailedException(
+                    f"Goal creation failed: {errors['message']}"
+                )
             elif errors.get("fieldErrors"):
                 field_errors = [
                     f"{fe['field']}: {', '.join(fe['messages'])}"
                     for fe in errors["fieldErrors"]
                 ]
-                raise Exception(f"Goal creation failed: {'; '.join(field_errors)}")
+                raise RequestFailedException(
+                    f"Goal creation failed: {'; '.join(field_errors)}"
+                )
+            raise RequestFailedException(errors)
+
+        if not create_goal.get("goal"):
+            raise RequestFailedException("Goal creation failed: no goal returned")
 
         return result
 

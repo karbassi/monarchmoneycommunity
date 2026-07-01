@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -271,22 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the create_goal method.
         """
-        mock_execute_async.return_value = {
-            "createGoal": {
-                "goal": {
-                    "id": "220000000000000009",
-                    "name": "New Car",
-                    "targetAmount": 30000,
-                    "currentAmount": 0,
-                    "targetDate": "2027-01-01",
-                    "description": None,
-                    "createdAt": "2026-06-30T00:00:00+00:00",
-                    "__typename": "GoalV2",
-                },
-                "errors": None,
-                "__typename": "CreateGoalMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "create_goal.json"
+        )
 
         result = await self.monarch_money.create_goal(
             name="New Car",
@@ -328,7 +315,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             }
         }
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(RequestFailedException):
             await self.monarch_money.create_goal(name="x", target_amount=1)
 
     @classmethod
