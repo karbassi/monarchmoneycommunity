@@ -3721,12 +3721,17 @@ class MonarchMoney(object):
             variables={"id": goal_id},
         )
 
-        if result.get("deleteGoal", {}).get("errors"):
-            errors = result["deleteGoal"]["errors"]
-            if errors.get("message"):
-                raise Exception(f"Goal deletion failed: {errors['message']}")
+        delete_goal = result.get("deleteGoal") or {}
 
-        return result.get("deleteGoal", {}).get("deleted", False)
+        errors = delete_goal.get("errors")
+        if errors:
+            raise RequestFailedException(errors)
+
+        deleted = delete_goal.get("deleted", False)
+        if not deleted:
+            raise RequestFailedException(errors)
+
+        return deleted
 
     async def gql_call(
         self,

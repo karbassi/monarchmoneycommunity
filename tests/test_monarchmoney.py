@@ -271,13 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the delete_goal method.
         """
-        mock_execute_async.return_value = {
-            "deleteGoal": {
-                "deleted": True,
-                "errors": None,
-                "__typename": "DeleteGoalMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "delete_goal.json"
+        )
 
         result = await self.monarch_money.delete_goal("220000000000000009")
 

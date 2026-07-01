@@ -1,0 +1,7 @@
+{
+    "deleteGoal": {
+        "deleted": true,
+        "errors": null,
+        "__typename": "DeleteGoalMutation"
+    }
+}
