@@ -3682,6 +3682,46 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def get_edit_merchant(self, merchant_id: str) -> Dict[str, Any]:
+        """
+        Gets merchant information for editing, including recurring transaction
+        stream settings.
+
+        :param merchant_id: ID of the merchant to get edit information for
+        :return: Merchant edit information (basic details, transaction/rule
+            counts, whether it can be deleted, and recurring stream status)
+        """
+        query = gql(
+            """
+            query Common_GetEditMerchant($merchantId: ID!) {
+                merchant(id: $merchantId) {
+                    id
+                    name
+                    logoUrl
+                    transactionCount
+                    ruleCount
+                    canBeDeleted
+                    hasActiveRecurringStreams
+                    recurringTransactionStream {
+                        id
+                        frequency
+                        amount
+                        baseDate
+                        isActive
+                        __typename
+                    }
+                    __typename
+                }
+            }
+            """
+        )
+
+        return await self.gql_call(
+            operation="Common_GetEditMerchant",
+            graphql_query=query,
+            variables={"merchantId": merchant_id},
+        )
+
     async def gql_call(
         self,
         operation: str,

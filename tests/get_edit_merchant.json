@@ -1,0 +1,20 @@
+{
+  "merchant": {
+    "id": "190000000000000001",
+    "name": "Amazon",
+    "logoUrl": null,
+    "transactionCount": 142,
+    "ruleCount": 1,
+    "canBeDeleted": false,
+    "hasActiveRecurringStreams": true,
+    "recurringTransactionStream": {
+      "id": "230000000000000001",
+      "frequency": "monthly",
+      "amount": -14.99,
+      "baseDate": "2026-06-01",
+      "isActive": true,
+      "__typename": "RecurringTransactionStream"
+    },
+    "__typename": "Merchant"
+  }
+}
