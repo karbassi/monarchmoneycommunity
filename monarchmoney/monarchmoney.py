@@ -3721,15 +3721,15 @@ class MonarchMoney(object):
             variables={"id": goal_id},
         )
 
-        delete_goal = result.get("deleteGoal") or {}
+        delete_goal_result = result.get("deleteGoal") or {}
 
-        errors = delete_goal.get("errors")
+        errors = delete_goal_result.get("errors")
         if errors:
             raise RequestFailedException(errors)
 
-        deleted = delete_goal.get("deleted", False)
-        if not deleted:
-            raise RequestFailedException(errors)
+        deleted = delete_goal_result.get("deleted", False)
+        if deleted is not True:
+            raise RequestFailedException("Goal deletion failed or goal not found")
 
         return deleted
 
