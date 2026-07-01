@@ -266,6 +266,69 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions(self, mock_execute_async):
+        """
+        Test the bulk_update_transactions method.
+        """
+        mock_execute_async.return_value = {
+            "bulkUpdateTransactions": {
+                "success": True,
+                "affectedCount": 3,
+                "errors": None,
+                "__typename": "BulkUpdateTransactionsMutation",
+            }
+        }
+
+        result = await self.monarch_money.bulk_update_transactions(
+            transaction_ids=["1", "2", "3"],
+            updates={"hide": True},
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(
+            kwargs["operation_name"], "Common_BulkUpdateTransactionsMutation"
+        )
+        variables = kwargs["variable_values"]
+        self.assertEqual(variables["selectedTransactionIds"], ["1", "2", "3"])
+        self.assertEqual(variables["updates"], {"hide": True})
+        self.assertFalse(variables["allSelected"])
+        self.assertEqual(variables["expectedAffectedTransactionCount"], 3)
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["affectedCount"], 3)
+
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions_raises_on_error(self, mock_execute_async):
+        """
+        Test that bulk_update_transactions raises when the API returns errors.
+        """
+        mock_execute_async.return_value = {
+            "bulkUpdateTransactions": {
+                "success": False,
+                "affectedCount": 0,
+                "errors": [{"message": "boom", "__typename": "PayloadError"}],
+                "__typename": "BulkUpdateTransactionsMutation",
+            }
+        }
+
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=["1"], updates={"hide": True}
+            )
+
+    async def test_bulk_update_transactions_requires_ids(self):
+        """
+        Test that bulk_update_transactions rejects an empty id list.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.bulk_update_transactions(
+                transaction_ids=[], updates={"hide": True}
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
