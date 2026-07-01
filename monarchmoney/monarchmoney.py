@@ -3803,7 +3803,9 @@ class MonarchMoney(object):
 
         rule_data = mutation.get("transactionRule")
         if not rule_data:
-            raise RequestFailedException("Transaction rule update returned no rule")
+            raise RequestFailedException(
+                f"Transaction rule update for {rule_id} returned no rule"
+            )
         return {"transactionRule": rule_data}
 
     async def gql_call(
