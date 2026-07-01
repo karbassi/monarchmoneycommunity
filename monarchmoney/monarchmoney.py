@@ -3777,19 +3777,27 @@ class MonarchMoney(object):
             "categoryIds": rule_data.get("categoryIds"),
             "accountIds": rule_data.get("accountIds"),
             "reviewStatusAction": rule_data.get("reviewStatusAction"),
-            "splitTransactionsAction": rule_data.get("splitTransactionsAction"),
+            "splitTransactionsAction": clean_graphql_data(
+                rule_data.get("splitTransactionsAction")
+            ),
             "applyToExistingTransactions": apply_to_existing_transactions,
         }
 
-        # setCategoryAction is returned as an object but must be sent as just the ID
-        set_category_action = rule_data.get("setCategoryAction")
-        if set_category_action:
+        # Carry addTagsAction through (cleaned) only when present in rule_data.
+        if "addTagsAction" in rule_data:
+            rule_input["addTagsAction"] = clean_graphql_data(
+                rule_data.get("addTagsAction")
+            )
+
+        # setCategoryAction is returned as an object but must be sent as just the
+        # ID. Only include it when present in rule_data so a missing key does not
+        # clear a caller's existing category.
+        if "setCategoryAction" in rule_data:
+            set_category_action = rule_data.get("setCategoryAction")
             if isinstance(set_category_action, dict) and "id" in set_category_action:
                 rule_input["setCategoryAction"] = set_category_action["id"]
             else:
                 rule_input["setCategoryAction"] = set_category_action
-        else:
-            rule_input["setCategoryAction"] = None
 
         result = await self.gql_call(
             operation="Common_UpdateTransactionRuleMutationV2",

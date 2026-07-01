@@ -289,7 +289,21 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             "categoryIds": None,
             "accountIds": None,
             "reviewStatusAction": None,
-            "splitTransactionsAction": None,
+            "splitTransactionsAction": {
+                "amountType": "PERCENTAGE",
+                "splitsInfo": [
+                    {"amount": 50, "__typename": "SplitInfo"},
+                    {"amount": 50, "__typename": "SplitInfo"},
+                ],
+                "__typename": "SplitTransactionsAction",
+            },
+            "addTagsAction": [
+                {
+                    "id": "180000000000000011",
+                    "name": "Reimbursable",
+                    "__typename": "TransactionTag",
+                }
+            ],
             "setCategoryAction": {
                 "id": "170000000000000010",
                 "name": "Coffee Shops",
@@ -311,6 +325,14 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(rule_input["setCategoryAction"], "170000000000000010")
         # __typename is stripped from nested criteria
         self.assertNotIn("__typename", rule_input["merchantCriteria"][0])
+        # addTagsAction is carried through and cleaned of __typename
+        self.assertEqual(rule_input["addTagsAction"][0]["id"], "180000000000000011")
+        self.assertNotIn("__typename", rule_input["addTagsAction"][0])
+        # __typename is stripped from the nested splitTransactionsAction
+        self.assertNotIn("__typename", rule_input["splitTransactionsAction"])
+        self.assertNotIn(
+            "__typename", rule_input["splitTransactionsAction"]["splitsInfo"][0]
+        )
 
         self.assertEqual(result["transactionRule"]["id"], "160000000000000009")
 
