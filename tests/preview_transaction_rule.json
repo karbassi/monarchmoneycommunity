@@ -32,6 +32,37 @@
           "__typename": "Transaction"
         },
         "__typename": "TransactionRulePreviewResult"
+      },
+      {
+        "newName": null,
+        "newSplitTransactions": null,
+        "newCategory": {
+          "id": "170000000000000010",
+          "icon": "☕",
+          "name": "Coffee Shops",
+          "__typename": "Category"
+        },
+        "newHideFromReports": null,
+        "newTags": [],
+        "newGoal": null,
+        "transaction": {
+          "id": "180000000000000002",
+          "date": "2026-06-03",
+          "amount": -4.25,
+          "merchant": {
+            "id": "190000000000000002",
+            "name": "Peets Coffee",
+            "__typename": "Merchant"
+          },
+          "category": {
+            "id": "170000000000000099",
+            "name": "Uncategorized",
+            "icon": "❓",
+            "__typename": "Category"
+          },
+          "__typename": "Transaction"
+        },
+        "__typename": "TransactionRulePreviewResult"
       }
     ],
     "__typename": "TransactionRulePreview"

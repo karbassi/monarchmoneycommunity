@@ -3768,18 +3768,26 @@ class MonarchMoney(object):
             """
         )
 
-        rule_input = {
+        rule_input: Dict[str, Any] = {
             "merchantCriteriaUseOriginalStatement": merchant_criteria_use_original_statement,
             "applyToExistingTransactions": apply_to_existing_transactions,
-            "merchantCriteria": merchant_criteria,
-            "amountCriteria": amount_criteria,
-            "categoryIds": category_ids,
-            "accountIds": account_ids,
-            "setCategoryAction": set_category_action,
-            "addTagsAction": add_tags_action,
-            "setMerchantAction": set_merchant_action,
-            "splitTransactionsAction": split_transactions_action,
         }
+        if merchant_criteria is not None:
+            rule_input["merchantCriteria"] = merchant_criteria
+        if amount_criteria is not None:
+            rule_input["amountCriteria"] = amount_criteria
+        if category_ids is not None:
+            rule_input["categoryIds"] = category_ids
+        if account_ids is not None:
+            rule_input["accountIds"] = account_ids
+        if set_category_action is not None:
+            rule_input["setCategoryAction"] = set_category_action
+        if add_tags_action is not None:
+            rule_input["addTagsAction"] = add_tags_action
+        if set_merchant_action is not None:
+            rule_input["setMerchantAction"] = set_merchant_action
+        if split_transactions_action is not None:
+            rule_input["splitTransactionsAction"] = split_transactions_action
 
         return await self.gql_call(
             operation="PreviewTransactionRule",
