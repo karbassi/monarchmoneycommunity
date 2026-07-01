@@ -266,6 +266,32 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_get_edit_merchant(self, mock_execute_async):
+        """
+        Test the get_edit_merchant method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="get_edit_merchant.json",
+        )
+        result = await self.monarch_money.get_edit_merchant("190000000000000001")
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "Common_GetEditMerchant")
+        self.assertEqual(
+            kwargs["variable_values"], {"merchantId": "190000000000000001"}
+        )
+
+        self.assertIsNotNone(result, "Expected result to not be None")
+        self.assertTrue(result["merchant"]["hasActiveRecurringStreams"])
+        self.assertEqual(
+            result["merchant"]["recurringTransactionStream"]["frequency"],
+            "monthly",
+            "Expected the recurring stream frequency to be 'monthly'",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
