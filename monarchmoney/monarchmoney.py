@@ -3765,23 +3765,35 @@ class MonarchMoney(object):
                 return [clean_graphql_data(item) for item in obj]
             return obj
 
-        rule_input = {
-            "id": rule_data.get("id"),
-            "merchantCriteriaUseOriginalStatement": rule_data.get(
-                "merchantCriteriaUseOriginalStatement", False
-            ),
-            "merchantCriteria": clean_graphql_data(
-                rule_data.get("merchantCriteria", [])
-            ),
-            "amountCriteria": clean_graphql_data(rule_data.get("amountCriteria")),
-            "categoryIds": rule_data.get("categoryIds"),
-            "accountIds": rule_data.get("accountIds"),
-            "reviewStatusAction": rule_data.get("reviewStatusAction"),
-            "splitTransactionsAction": clean_graphql_data(
+        # Rebuild the input with only the keys present in rule_data (plus the
+        # required id) so a partial rule_data does not unintentionally clear
+        # fields by injecting defaults for absent keys.
+        rule_input = {"id": rule_data.get("id")}
+
+        if "merchantCriteriaUseOriginalStatement" in rule_data:
+            rule_input["merchantCriteriaUseOriginalStatement"] = rule_data.get(
+                "merchantCriteriaUseOriginalStatement"
+            )
+        if "merchantCriteria" in rule_data:
+            rule_input["merchantCriteria"] = clean_graphql_data(
+                rule_data.get("merchantCriteria")
+            )
+        if "amountCriteria" in rule_data:
+            rule_input["amountCriteria"] = clean_graphql_data(
+                rule_data.get("amountCriteria")
+            )
+        if "categoryIds" in rule_data:
+            rule_input["categoryIds"] = rule_data.get("categoryIds")
+        if "accountIds" in rule_data:
+            rule_input["accountIds"] = rule_data.get("accountIds")
+        if "reviewStatusAction" in rule_data:
+            rule_input["reviewStatusAction"] = rule_data.get("reviewStatusAction")
+        if "splitTransactionsAction" in rule_data:
+            rule_input["splitTransactionsAction"] = clean_graphql_data(
                 rule_data.get("splitTransactionsAction")
-            ),
-            "applyToExistingTransactions": apply_to_existing_transactions,
-        }
+            )
+        if "applyToExistingTransactions" in rule_data:
+            rule_input["applyToExistingTransactions"] = apply_to_existing_transactions
 
         # Carry addTagsAction through (cleaned) only when present in rule_data.
         if "addTagsAction" in rule_data:
