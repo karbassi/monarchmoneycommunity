@@ -65,9 +65,9 @@ from monarchmoney import MonarchMoney, RequireMFAException
 
 mm = MonarchMoney()
 try:
-        await mm.login(email, password)
+    await mm.login(email, password)
 except RequireMFAException:
-        await mm.multi_factor_authenticate(email, password, multi_factor_code)
+    await mm.multi_factor_authenticate(email, password, multi_factor_code)
 ```
 
 Alternatively, you can provide the MFA Secret Key. The MFA Secret Key is found when setting up the MFA in Monarch Money by going to Settings -> Security -> Enable MFA -> and copy the `Two-factor text code`. Then provide it in the login() method:
@@ -76,12 +76,12 @@ from monarchmoney import MonarchMoney, RequireMFAException
 
 mm = MonarchMoney()
 await mm.login(
-        email=email,
-        password=password,
-        save_session=False,
-        use_saved_session=False,
-        mfa_secret_key=mfa_secret_key,
-    )
+    email=email,
+    password=password,
+    save_session=False,
+    use_saved_session=False,
+    mfa_secret_key=mfa_secret_key,
+)
 
 ```
 
@@ -313,7 +313,7 @@ As of writing this README, the following methods are supported:
 
 Any and all contributions - code, documentation, feature requests, feedback - are welcome!
 
-If you plan to submit up a pull request, you can expect a timely review.  There aren't any strict requirements around the environment you'll need.
+If you plan to submit a pull request, you can expect a timely review.  There aren't any strict requirements around the environment you'll need.
 
 # FAQ
 
