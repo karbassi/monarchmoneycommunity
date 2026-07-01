@@ -194,6 +194,10 @@ As of writing this README, the following methods are supported:
       <td>gets all of the tags configured in the account</td>
     </tr>
     <tr>
+      <td><code>preview_transaction_rule</code></td>
+      <td>previews which transactions a rule would affect, before creating it</td>
+    </tr>
+    <tr>
       <td><code>get_cashflow</code></td>
       <td>gets cashflow data (by category, category group, merchant and a summary)</td>
     </tr>
