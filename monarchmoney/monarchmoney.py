@@ -3770,9 +3770,9 @@ class MonarchMoney(object):
             raise RequestFailedException(errors)
 
         rule_data = result.get("createTransactionRuleV2", {}).get("transactionRule")
-        if rule_data:
-            return {"transactionRule": rule_data}
-        return result
+        if not rule_data:
+            raise RequestFailedException("Transaction rule creation returned no rule")
+        return {"transactionRule": rule_data}
 
     async def gql_call(
         self,

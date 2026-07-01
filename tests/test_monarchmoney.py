@@ -324,6 +324,27 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
                 merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
             )
 
+    @patch.object(Client, "execute_async")
+    async def test_create_transaction_rule_raises_when_no_rule(
+        self, mock_execute_async
+    ):
+        """
+        Test that create_transaction_rule raises when the API returns no rule
+        and no errors.
+        """
+        mock_execute_async.return_value = {
+            "createTransactionRuleV2": {
+                "errors": None,
+                "transactionRule": None,
+                "__typename": "CreateTransactionRuleMutationV2",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.create_transaction_rule(
+                merchant_criteria=[{"operator": "contains", "value": "Amazon"}],
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
