@@ -3446,10 +3446,10 @@ class MonarchMoney(object):
             "Web_GetUploadBalanceHistorySession", query, variables
         )
 
-    async def update_reoccuring(
+    async def update_merchant(
         self,
         merchant_id: str,
-        name: str,
+        name: Optional[str] = None,
         is_recurring: Optional[bool] = None,
         frequency: Optional[str] = None,
         base_date: Optional[str] = None,
@@ -3457,10 +3457,14 @@ class MonarchMoney(object):
         is_active: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """
-        Updates recurring merchant settings for an existing merchant.
+        Updates a merchant's name and/or recurring transaction settings.
+
+        Only the fields provided are sent, so at least one of ``name`` or a
+        recurrence attribute (``is_recurring``, ``frequency``, ``base_date``,
+        ``amount``, ``is_active``) must be provided.
 
         :param merchant_id: The merchant id to update.
-        :param name: The merchant name.
+        :param name: The new merchant name. Optional; omit to leave unchanged.
         :param is_recurring: Whether the merchant should be marked recurring.
         :param frequency: The recurrence frequency (e.g. monthly).
         :param base_date: The recurrence start date in YYYY-MM-DD format.
@@ -3505,12 +3509,9 @@ class MonarchMoney(object):
             """
         )
 
-        variables: Dict[str, Any] = {
-            "input": {
-                "merchantId": merchant_id,
-                "name": name,
-            }
-        }
+        merchant_input: Dict[str, Any] = {"merchantId": merchant_id}
+        if name is not None:
+            merchant_input["name"] = name
 
         recurrence: Dict[str, Any] = {}
         if is_recurring is not None:
@@ -3523,14 +3524,52 @@ class MonarchMoney(object):
             recurrence["amount"] = amount
         if is_active is not None:
             recurrence["isActive"] = is_active
-
         if recurrence:
-            variables["input"]["recurrence"] = recurrence
+            merchant_input["recurrence"] = recurrence
+
+        if name is None and not recurrence:
+            raise ValueError(
+                "update_merchant requires at least one field to update "
+                "(name or a recurrence attribute)"
+            )
 
         return await self.gql_call(
             operation="Common_UpdateMerchant",
             graphql_query=query,
-            variables=variables,
+            variables={"input": merchant_input},
+        )
+
+    async def update_reoccuring(
+        self,
+        merchant_id: str,
+        name: str,
+        is_recurring: Optional[bool] = None,
+        frequency: Optional[str] = None,
+        base_date: Optional[str] = None,
+        amount: Optional[float] = None,
+        is_active: Optional[bool] = None,
+    ) -> Dict[str, Any]:
+        """
+        Updates recurring merchant settings for an existing merchant.
+
+        Thin wrapper over ``update_merchant`` kept for backwards compatibility.
+
+        :param merchant_id: The merchant id to update.
+        :param name: The merchant name.
+        :param is_recurring: Whether the merchant should be marked recurring.
+        :param frequency: The recurrence frequency (e.g. monthly).
+        :param base_date: The recurrence start date in YYYY-MM-DD format.
+        :param amount: The recurrence amount.
+        :param is_active: Whether the recurrence is active.
+        """
+        return await self.update_merchant(
+            merchant_id=merchant_id,
+            name=name,
+            is_recurring=is_recurring,
+            frequency=frequency,
+            base_date=base_date,
+            amount=amount,
+            is_active=is_active,
         )
 
     async def get_recurring_transactions(

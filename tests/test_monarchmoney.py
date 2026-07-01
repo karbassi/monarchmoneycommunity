@@ -266,6 +266,78 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_update_merchant(self, mock_execute_async):
+        """
+        Test the update_merchant method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_merchant.json"
+        )
+
+        result = await self.monarch_money.update_merchant(
+            merchant_id="190000000000000001",
+            name="Netflix",
+            is_recurring=True,
+            frequency="monthly",
+            amount=-15.99,
+            is_active=True,
+        )
+
+        mock_execute_async.assert_awaited_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "Common_UpdateMerchant")
+        merchant_input = kwargs["variable_values"]["input"]
+        self.assertEqual(merchant_input["merchantId"], "190000000000000001")
+        self.assertEqual(merchant_input["name"], "Netflix")
+        self.assertEqual(
+            merchant_input["recurrence"],
+            {
+                "isRecurring": True,
+                "frequency": "monthly",
+                "amount": -15.99,
+                "isActive": True,
+            },
+        )
+
+        self.assertEqual(result["updateMerchant"]["merchant"]["name"], "Netflix")
+
+    async def test_update_merchant_requires_a_field(self):
+        """
+        update_merchant should reject calls with no updatable field.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.update_merchant("190000000000000001")
+
+    @patch.object(Client, "execute_async")
+    async def test_update_reoccuring_delegates(self, mock_execute_async):
+        """
+        update_reoccuring should keep working via update_merchant.
+        """
+        mock_execute_async.return_value = {
+            "updateMerchant": {
+                "merchant": {"id": "190000000000000001", "name": "Netflix"},
+                "errors": None,
+                "__typename": "UpdateMerchantMutation",
+            }
+        }
+
+        await self.monarch_money.update_reoccuring(
+            merchant_id="190000000000000001",
+            name="Netflix",
+            is_recurring=True,
+        )
+
+        mock_execute_async.assert_awaited_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertEqual(kwargs["operation_name"], "Common_UpdateMerchant")
+        merchant_input = kwargs["variable_values"]["input"]
+        self.assertEqual(merchant_input["merchantId"], "190000000000000001")
+        self.assertEqual(merchant_input["name"], "Netflix")
+        self.assertEqual(merchant_input["recurrence"], {"isRecurring": True})
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
