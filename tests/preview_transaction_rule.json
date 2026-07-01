@@ -7,7 +7,7 @@
         "newSplitTransactions": null,
         "newCategory": {
           "id": "170000000000000010",
-          "icon": "☕",
+          "icon": "\u2615",
           "name": "Coffee Shops",
           "__typename": "Category"
         },
@@ -26,7 +26,7 @@
           "category": {
             "id": "170000000000000099",
             "name": "Uncategorized",
-            "icon": "❓",
+            "icon": "\u2753",
             "__typename": "Category"
           },
           "__typename": "Transaction"
@@ -38,7 +38,7 @@
         "newSplitTransactions": null,
         "newCategory": {
           "id": "170000000000000010",
-          "icon": "☕",
+          "icon": "\u2615",
           "name": "Coffee Shops",
           "__typename": "Category"
         },
@@ -57,7 +57,7 @@
           "category": {
             "id": "170000000000000099",
             "name": "Uncategorized",
-            "icon": "❓",
+            "icon": "\u2753",
             "__typename": "Category"
           },
           "__typename": "Transaction"
