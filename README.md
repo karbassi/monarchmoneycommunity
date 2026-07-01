@@ -263,6 +263,10 @@ As of writing this README, the following methods are supported:
       <td>creates a tag for transactions</td>
     </tr>
     <tr>
+      <td><code>update_transaction_rule_retroactive</code></td>
+      <td>re-submits an existing rule (from <code>get_transaction_rules</code>) so it applies to existing transactions</td>
+    </tr>
+    <tr>
       <td><code>set_transaction_tags</code></td>
       <td>sets the tags on a transaction</td>
     </tr>

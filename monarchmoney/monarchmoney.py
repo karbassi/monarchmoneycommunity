@@ -3682,6 +3682,133 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def update_transaction_rule_retroactive(
+        self,
+        rule_data: Dict[str, Any],
+        apply_to_existing_transactions: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Update an existing transaction rule to apply retroactively.
+
+        Takes a complete rule dict (as returned by ``get_transaction_rules``) and
+        re-submits it, defaulting ``applyToExistingTransactions`` to True so the
+        rule is applied to existing transactions.
+
+        :param rule_data: Complete rule data from get_transaction_rules()
+        :param apply_to_existing_transactions: Apply rule to existing transactions
+        :return: Updated rule data
+        """
+        query = gql(
+            """
+            mutation Common_UpdateTransactionRuleMutationV2($input: UpdateTransactionRuleInput!) {
+                updateTransactionRuleV2(input: $input) {
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    transactionRule {
+                        id
+                        name
+                        categoryIds
+                        accountIds
+                        merchantCriteria {
+                            operator
+                            value
+                            __typename
+                        }
+                        amountCriteria {
+                            operator
+                            value
+                            isExpense
+                            valueRange {
+                                lower
+                                upper
+                                __typename
+                            }
+                            __typename
+                        }
+                        setCategoryAction
+                        addTagsAction
+                        applyToExistingTransactions
+                        merchantCriteriaUseOriginalStatement
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        def clean_graphql_data(obj):
+            if isinstance(obj, dict):
+                return {
+                    k: clean_graphql_data(v)
+                    for k, v in obj.items()
+                    if k != "__typename"
+                }
+            elif isinstance(obj, list):
+                return [clean_graphql_data(item) for item in obj]
+            return obj
+
+        rule_input = {
+            "id": rule_data.get("id"),
+            "merchantCriteriaUseOriginalStatement": rule_data.get(
+                "merchantCriteriaUseOriginalStatement", False
+            ),
+            "merchantCriteria": clean_graphql_data(
+                rule_data.get("merchantCriteria", [])
+            ),
+            "amountCriteria": clean_graphql_data(rule_data.get("amountCriteria")),
+            "categoryIds": rule_data.get("categoryIds"),
+            "accountIds": rule_data.get("accountIds"),
+            "reviewStatusAction": rule_data.get("reviewStatusAction"),
+            "splitTransactionsAction": rule_data.get("splitTransactionsAction"),
+            "applyToExistingTransactions": apply_to_existing_transactions,
+        }
+
+        # setCategoryAction is returned as an object but must be sent as just the ID
+        set_category_action = rule_data.get("setCategoryAction")
+        if set_category_action:
+            if isinstance(set_category_action, dict) and "id" in set_category_action:
+                rule_input["setCategoryAction"] = set_category_action["id"]
+            else:
+                rule_input["setCategoryAction"] = set_category_action
+        else:
+            rule_input["setCategoryAction"] = None
+
+        result = await self.gql_call(
+            operation="Common_UpdateTransactionRuleMutationV2",
+            graphql_query=query,
+            variables={"input": rule_input},
+        )
+
+        errors = result.get("updateTransactionRuleV2", {}).get("errors")
+        if errors and (errors.get("message") or errors.get("fieldErrors")):
+            if errors.get("message"):
+                raise Exception(f"Rule update failed: {errors['message']}")
+            elif errors.get("fieldErrors"):
+                field_errors = [
+                    f"{fe['field']}: {', '.join(fe['messages'])}"
+                    for fe in errors["fieldErrors"]
+                ]
+                raise Exception(f"Rule update failed: {'; '.join(field_errors)}")
+
+        updated = result.get("updateTransactionRuleV2", {}).get("transactionRule")
+        if updated:
+            return {"transactionRule": updated}
+        return result
+
     async def gql_call(
         self,
         operation: str,

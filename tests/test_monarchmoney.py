@@ -266,6 +266,86 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_retroactive(self, mock_execute_async):
+        """
+        Test the update_transaction_rule_retroactive method.
+        """
+        mock_execute_async.return_value = {
+            "updateTransactionRuleV2": {
+                "errors": None,
+                "transactionRule": {
+                    "id": "160000000000000009",
+                    "__typename": "TransactionRuleV2",
+                },
+                "__typename": "UpdateTransactionRuleMutationV2",
+            }
+        }
+
+        rule_data = {
+            "id": "160000000000000009",
+            "merchantCriteriaUseOriginalStatement": False,
+            "merchantCriteria": [
+                {
+                    "operator": "contains",
+                    "value": "Amazon",
+                    "__typename": "MerchantCriterion",
+                }
+            ],
+            "amountCriteria": None,
+            "categoryIds": None,
+            "accountIds": None,
+            "reviewStatusAction": None,
+            "splitTransactionsAction": None,
+            "setCategoryAction": {
+                "id": "170000000000000010",
+                "name": "Coffee Shops",
+                "__typename": "Category",
+            },
+        }
+
+        result = await self.monarch_money.update_transaction_rule_retroactive(rule_data)
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertEqual(
+            kwargs["operation_name"], "Common_UpdateTransactionRuleMutationV2"
+        )
+        rule_input = kwargs["variable_values"]["input"]
+        self.assertEqual(rule_input["id"], "160000000000000009")
+        self.assertTrue(rule_input["applyToExistingTransactions"])
+        # setCategoryAction object is reduced to just its id
+        self.assertEqual(rule_input["setCategoryAction"], "170000000000000010")
+        # __typename is stripped from nested criteria
+        self.assertNotIn("__typename", rule_input["merchantCriteria"][0])
+
+        self.assertEqual(result["transactionRule"]["id"], "160000000000000009")
+
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_retroactive_raises_on_error(
+        self, mock_execute_async
+    ):
+        """
+        Test that update_transaction_rule_retroactive raises on API error.
+        """
+        mock_execute_async.return_value = {
+            "updateTransactionRuleV2": {
+                "errors": {
+                    "message": "Rule not found",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "transactionRule": None,
+                "__typename": "UpdateTransactionRuleMutationV2",
+            }
+        }
+
+        with self.assertRaises(Exception):
+            await self.monarch_money.update_transaction_rule_retroactive(
+                {"id": "160000000000000009"}
+            )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
