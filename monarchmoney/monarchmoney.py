@@ -3709,8 +3709,14 @@ class MonarchMoney(object):
         if not updates or not isinstance(updates, dict):
             raise ValueError("updates must be a non-empty dictionary")
 
+        if excluded_transaction_ids is not None and not isinstance(
+            excluded_transaction_ids, list
+        ):
+            raise ValueError("excluded_transaction_ids must be a list")
+
         excluded = excluded_transaction_ids or []
-        expected_count = len(transaction_ids) - len(excluded)
+        excluded_set = set(excluded)
+        expected_count = len([t for t in transaction_ids if t not in excluded_set])
 
         query = gql(
             """
@@ -3760,7 +3766,9 @@ class MonarchMoney(object):
 
         bulk_result = result.get("bulkUpdateTransactions", {})
         if bulk_result.get("errors"):
-            raise ValueError(f"Bulk update failed: {bulk_result['errors']}")
+            raise RequestFailedException(f"Bulk update failed: {bulk_result['errors']}")
+        if not bulk_result.get("success"):
+            raise RequestFailedException(bulk_result)
 
         return bulk_result
 

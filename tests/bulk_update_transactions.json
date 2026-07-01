@@ -1,0 +1,8 @@
+{
+    "bulkUpdateTransactions": {
+        "success": true,
+        "affectedCount": 3,
+        "errors": null,
+        "__typename": "BulkUpdateTransactionsMutation"
+    }
+}

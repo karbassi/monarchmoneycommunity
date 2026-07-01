@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -271,14 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the bulk_update_transactions method.
         """
-        mock_execute_async.return_value = {
-            "bulkUpdateTransactions": {
-                "success": True,
-                "affectedCount": 3,
-                "errors": None,
-                "__typename": "BulkUpdateTransactionsMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "bulk_update_transactions.json"
+        )
 
         result = await self.monarch_money.bulk_update_transactions(
             transaction_ids=["1", "2", "3"],
@@ -315,7 +310,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             }
         }
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(RequestFailedException):
             await self.monarch_money.bulk_update_transactions(
                 transaction_ids=["1"], updates={"hide": True}
             )
@@ -328,6 +323,25 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             await self.monarch_money.bulk_update_transactions(
                 transaction_ids=[], updates={"hide": True}
             )
+
+    @patch.object(Client, "execute_async")
+    async def test_bulk_update_transactions_excludes_ids(self, mock_execute_async):
+        """
+        Test that bulk_update_transactions honors excluded_transaction_ids.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "bulk_update_transactions.json"
+        )
+
+        await self.monarch_money.bulk_update_transactions(
+            transaction_ids=["1", "2", "3"],
+            excluded_transaction_ids=["2"],
+            updates={"hide": True},
+        )
+
+        variables = mock_execute_async.call_args.kwargs["variable_values"]
+        self.assertEqual(variables["excludedTransactionIds"], ["2"])
+        self.assertEqual(variables["expectedAffectedTransactionCount"], 2)
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
