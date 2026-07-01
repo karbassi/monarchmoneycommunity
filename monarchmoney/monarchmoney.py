@@ -3682,6 +3682,31 @@ class MonarchMoney(object):
         end_of_month = now.replace(day=last_day)
         return end_of_month.strftime("%Y-%m-%d")
 
+    async def delete_all_transaction_rules(self) -> bool:
+        """
+        Deletes all transaction rules.
+
+        :return: True if all rules were deleted successfully
+        """
+        query = gql(
+            """
+            mutation Web_DeleteAllTransactionRulesMutation {
+                deleteAllTransactionRules {
+                    deleted
+                    __typename
+                }
+            }
+            """
+        )
+
+        result = await self.gql_call(
+            operation="Web_DeleteAllTransactionRulesMutation",
+            graphql_query=query,
+            variables={},
+        )
+
+        return result.get("deleteAllTransactionRules", {}).get("deleted", False)
+
     async def gql_call(
         self,
         operation: str,
