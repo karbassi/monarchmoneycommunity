@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -265,6 +265,140 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
+
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_retroactive(self, mock_execute_async):
+        """
+        Test the update_transaction_rule_retroactive method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_transaction_rule_retroactive.json"
+        )
+
+        rule_data = {
+            "id": "160000000000000009",
+            "merchantCriteriaUseOriginalStatement": False,
+            "merchantCriteria": [
+                {
+                    "operator": "contains",
+                    "value": "Amazon",
+                    "__typename": "MerchantCriterion",
+                }
+            ],
+            "amountCriteria": None,
+            "categoryIds": None,
+            "accountIds": None,
+            "reviewStatusAction": None,
+            "splitTransactionsAction": {
+                "amountType": "PERCENTAGE",
+                "splitsInfo": [
+                    {"amount": 50, "__typename": "SplitInfo"},
+                    {"amount": 50, "__typename": "SplitInfo"},
+                ],
+                "__typename": "SplitTransactionsAction",
+            },
+            "addTagsAction": [
+                {
+                    "id": "180000000000000011",
+                    "name": "Reimbursable",
+                    "__typename": "TransactionTag",
+                }
+            ],
+            "setCategoryAction": {
+                "id": "170000000000000010",
+                "name": "Coffee Shops",
+                "__typename": "Category",
+            },
+            "applyToExistingTransactions": False,
+        }
+
+        result = await self.monarch_money.update_transaction_rule_retroactive(rule_data)
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertEqual(
+            kwargs["operation_name"], "Common_UpdateTransactionRuleMutationV2"
+        )
+        rule_input = kwargs["variable_values"]["input"]
+        self.assertEqual(rule_input["id"], "160000000000000009")
+        # applyToExistingTransactions honors the method argument (default True)
+        # over the value in rule_data.
+        self.assertTrue(rule_input["applyToExistingTransactions"])
+        # setCategoryAction object is reduced to just its id
+        self.assertEqual(rule_input["setCategoryAction"], "170000000000000010")
+        # __typename is stripped from nested criteria
+        self.assertNotIn("__typename", rule_input["merchantCriteria"][0])
+        # addTagsAction is carried through and cleaned of __typename
+        self.assertEqual(rule_input["addTagsAction"][0]["id"], "180000000000000011")
+        self.assertNotIn("__typename", rule_input["addTagsAction"][0])
+        # __typename is stripped from the nested splitTransactionsAction
+        self.assertNotIn("__typename", rule_input["splitTransactionsAction"])
+        self.assertNotIn(
+            "__typename", rule_input["splitTransactionsAction"]["splitsInfo"][0]
+        )
+
+        self.assertEqual(result["transactionRule"]["id"], "160000000000000009")
+
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_retroactive_raises_on_error(
+        self, mock_execute_async
+    ):
+        """
+        Test that update_transaction_rule_retroactive raises on API error.
+        """
+        mock_execute_async.return_value = {
+            "updateTransactionRuleV2": {
+                "errors": {
+                    "message": "Rule not found",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "transactionRule": None,
+                "__typename": "UpdateTransactionRuleMutationV2",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.update_transaction_rule_retroactive(
+                {"id": "160000000000000009"}
+            )
+
+    @patch.object(Client, "execute_async")
+    async def test_update_transaction_rule_retroactive_partial(
+        self, mock_execute_async
+    ):
+        """
+        Test that a partial rule_data only sends keys that are present (plus id
+        and the applyToExistingTransactions argument override) so absent keys
+        are not cleared by injected defaults.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_transaction_rule_retroactive.json"
+        )
+
+        rule_data = {
+            "id": "160000000000000009",
+            "categoryIds": ["170000000000000010"],
+        }
+
+        await self.monarch_money.update_transaction_rule_retroactive(rule_data)
+
+        rule_input = mock_execute_async.call_args.kwargs["variable_values"]["input"]
+        self.assertEqual(rule_input["id"], "160000000000000009")
+        self.assertEqual(rule_input["categoryIds"], ["170000000000000010"])
+        # Keys absent from rule_data must not be injected.
+        self.assertNotIn("merchantCriteriaUseOriginalStatement", rule_input)
+        self.assertNotIn("merchantCriteria", rule_input)
+        self.assertNotIn("amountCriteria", rule_input)
+        self.assertNotIn("accountIds", rule_input)
+        self.assertNotIn("reviewStatusAction", rule_input)
+        self.assertNotIn("splitTransactionsAction", rule_input)
+        self.assertNotIn("addTagsAction", rule_input)
+        self.assertNotIn("setCategoryAction", rule_input)
+        # applyToExistingTransactions is always sent (the point of this method),
+        # even for a minimal rule_data; it defaults to True.
+        self.assertTrue(rule_input["applyToExistingTransactions"])
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
