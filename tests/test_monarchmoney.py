@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -271,17 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the update_transaction_rule method.
         """
-        mock_execute_async.return_value = {
-            "updateTransactionRuleV2": {
-                "errors": None,
-                "transactionRule": {
-                    "id": "160000000000000009",
-                    "setCategoryAction": "170000000000000010",
-                    "__typename": "TransactionRuleV2",
-                },
-                "__typename": "UpdateTransactionRuleMutationV2",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_transaction_rule.json"
+        )
 
         result = await self.monarch_money.update_transaction_rule(
             rule_id="160000000000000009",
@@ -325,7 +317,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             }
         }
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(RequestFailedException):
             await self.monarch_money.update_transaction_rule(
                 rule_id="160000000000000009",
                 set_category_action="170000000000000010",

@@ -3796,18 +3796,12 @@ class MonarchMoney(object):
             variables={"input": rule_input},
         )
 
-        errors = result.get("updateTransactionRuleV2", {}).get("errors")
-        if errors and (errors.get("message") or errors.get("fieldErrors")):
-            if errors.get("message"):
-                raise Exception(f"Rule update failed: {errors['message']}")
-            elif errors.get("fieldErrors"):
-                field_errors = [
-                    f"{fe['field']}: {', '.join(fe['messages'])}"
-                    for fe in errors["fieldErrors"]
-                ]
-                raise Exception(f"Rule update failed: {'; '.join(field_errors)}")
+        mutation = result.get("updateTransactionRuleV2") or {}
+        errors = mutation.get("errors")
+        if errors:
+            raise RequestFailedException(errors)
 
-        rule_data = result.get("updateTransactionRuleV2", {}).get("transactionRule")
+        rule_data = mutation.get("transactionRule")
         if rule_data:
             return {"transactionRule": rule_data}
         return result
