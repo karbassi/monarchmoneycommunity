@@ -3802,9 +3802,9 @@ class MonarchMoney(object):
             raise RequestFailedException(errors)
 
         rule_data = mutation.get("transactionRule")
-        if rule_data:
-            return {"transactionRule": rule_data}
-        return result
+        if not rule_data:
+            raise RequestFailedException("Transaction rule update returned no rule")
+        return {"transactionRule": rule_data}
 
     async def gql_call(
         self,
