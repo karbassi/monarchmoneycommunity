@@ -3734,9 +3734,9 @@ class MonarchMoney(object):
         )
 
         goal_input: Dict[str, Any] = {"name": name, "targetAmount": target_amount}
-        if target_date:
+        if target_date is not None:
             goal_input["targetDate"] = target_date
-        if description:
+        if description is not None:
             goal_input["description"] = description
 
         result = await self.gql_call(
