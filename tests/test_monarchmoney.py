@@ -266,6 +266,35 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_reorder_transaction_rules(self, mock_execute_async):
+        """
+        Test the reorder_transaction_rules method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "reorder_transaction_rules.json"
+        )
+
+        result = await self.monarch_money.reorder_transaction_rules(
+            rule_id="160000000000000002", new_order=0
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "Web_UpdateRuleOrderMutation")
+        self.assertEqual(
+            kwargs["variable_values"],
+            {"id": "160000000000000002", "order": 0},
+        )
+
+        self.assertEqual(
+            result["updateTransactionRuleOrderV2"]["transactionRules"][0]["id"],
+            "160000000000000002",
+            "Expected the reordered rule to be first",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
