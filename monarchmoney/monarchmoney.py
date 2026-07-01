@@ -407,7 +407,7 @@ class MonarchMoney(object):
     async def get_account_snapshots_by_type(self, start_date: str, timeframe: str):
         """
         Retrieves snapshots of the net values of all accounts of a given type, with either a yearly
-        monthly granularity.
+        or monthly granularity.
         `start_date` is an ISO datestring in the format YYYY-MM-DD, e.g. 2024-04-01,
         containing the date to begin the snapshots from
         `timeframe` is one of "year" or "month".
@@ -1292,8 +1292,8 @@ class MonarchMoney(object):
         Get your budgets and corresponding actual amounts from the account.
 
         When no date arguments given:
-            | `start_date` will default to last month based on todays date
-            | `end_date` will default to next month based on todays date
+            | `start_date` will default to last month based on today's date
+            | `end_date` will default to next month based on today's date
 
         :param start_date:
             the earliest date to get budget data, in "yyyy-mm-dd" format (default: last month)
@@ -2790,7 +2790,7 @@ class MonarchMoney(object):
             The beginning of the given timeframe (ex: 2023-12-01). If not specified, then the
             beginning of today's month will be used.
         :param apply_to_future:
-            Whether to apply the new budget amount to all proceeding timeframes
+            Whether to apply the new budget amount to all subsequent timeframes
         """
 
         # Will be true if neither of the parameters are set, or both are
