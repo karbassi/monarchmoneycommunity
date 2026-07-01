@@ -3525,6 +3525,12 @@ class MonarchMoney(object):
         if recurrence:
             merchant_input["recurrence"] = recurrence
 
+        if name is None and not recurrence:
+            raise ValueError(
+                "update_merchant requires at least one field to update "
+                "(name or a recurrence attribute)"
+            )
+
         return await self.gql_call(
             operation="Common_UpdateMerchant",
             graphql_query=query,

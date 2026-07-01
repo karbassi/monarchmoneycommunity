@@ -1,0 +1,19 @@
+{
+    "updateMerchant": {
+        "merchant": {
+            "id": "190000000000000001",
+            "name": "Netflix",
+            "recurringTransactionStream": {
+                "id": "230000000000000001",
+                "frequency": "monthly",
+                "amount": -15.99,
+                "baseDate": "2026-06-01",
+                "isActive": true,
+                "__typename": "RecurringTransactionStream"
+            },
+            "__typename": "Merchant"
+        },
+        "errors": null,
+        "__typename": "UpdateMerchantMutation"
+    }
+}

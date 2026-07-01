@@ -271,25 +271,9 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         Test the update_merchant method.
         """
-        mock_execute_async.return_value = {
-            "updateMerchant": {
-                "merchant": {
-                    "id": "190000000000000001",
-                    "name": "Netflix",
-                    "recurringTransactionStream": {
-                        "id": "230000000000000001",
-                        "frequency": "monthly",
-                        "amount": -15.99,
-                        "baseDate": "2026-06-01",
-                        "isActive": True,
-                        "__typename": "RecurringTransactionStream",
-                    },
-                    "__typename": "Merchant",
-                },
-                "errors": None,
-                "__typename": "UpdateMerchantMutation",
-            }
-        }
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_merchant.json"
+        )
 
         result = await self.monarch_money.update_merchant(
             merchant_id="190000000000000001",
@@ -319,6 +303,13 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(result["updateMerchant"]["merchant"]["name"], "Netflix")
+
+    async def test_update_merchant_requires_a_field(self):
+        """
+        update_merchant should reject calls with no updatable field.
+        """
+        with self.assertRaises(ValueError):
+            await self.monarch_money.update_merchant("190000000000000001")
 
     @patch.object(Client, "execute_async")
     async def test_update_reoccuring_delegates(self, mock_execute_async):
