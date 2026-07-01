@@ -266,6 +266,27 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_delete_all_transaction_rules(self, mock_execute_async):
+        """
+        Test the delete_all_transaction_rules method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="delete_all_transaction_rules.json",
+        )
+
+        result = await self.monarch_money.delete_all_transaction_rules()
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(
+            kwargs["operation_name"], "Web_DeleteAllTransactionRulesMutation"
+        )
+
+        self.assertTrue(result, "Expected delete-all to return True")
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"

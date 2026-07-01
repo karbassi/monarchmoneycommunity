@@ -255,6 +255,10 @@ As of writing this README, the following methods are supported:
       <td>deletes a given transaction by the provided transaction id</td>
     </tr>
     <tr>
+      <td><code>delete_all_transaction_rules</code></td>
+      <td>deletes all transaction rules in the account</td>
+    </tr>
+    <tr>
       <td><code>update_transaction_splits</code></td>
       <td>modifies how a transaction is split (or not)</td>
     </tr>
