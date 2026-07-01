@@ -1,0 +1,16 @@
+{
+    "createGoal": {
+        "goal": {
+            "id": "220000000000000009",
+            "name": "New Car",
+            "targetAmount": 30000,
+            "currentAmount": 0,
+            "targetDate": "2027-01-01",
+            "description": null,
+            "createdAt": "2026-06-30T00:00:00+00:00",
+            "__typename": "GoalV2"
+        },
+        "errors": null,
+        "__typename": "CreateGoalMutation"
+    }
+}

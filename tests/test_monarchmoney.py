@@ -6,7 +6,7 @@ from unittest.mock import patch
 import json
 from gql import Client
 from monarchmoney import MonarchMoney
-from monarchmoney.monarchmoney import LoginFailedException
+from monarchmoney.monarchmoney import LoginFailedException, RequestFailedException
 
 
 class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
@@ -265,6 +265,58 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         """
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
+
+    @patch.object(Client, "execute_async")
+    async def test_create_goal(self, mock_execute_async):
+        """
+        Test the create_goal method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "create_goal.json"
+        )
+
+        result = await self.monarch_money.create_goal(
+            name="New Car",
+            target_amount=30000,
+            target_date="2027-01-01",
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "CreateGoal")
+        goal_input = kwargs["variable_values"]["input"]
+        self.assertEqual(goal_input["name"], "New Car")
+        self.assertEqual(goal_input["targetAmount"], 30000)
+        self.assertEqual(goal_input["targetDate"], "2027-01-01")
+
+        self.assertEqual(
+            result["createGoal"]["goal"]["id"],
+            "220000000000000009",
+            "Expected the created goal id to be returned",
+        )
+
+    @patch.object(Client, "execute_async")
+    async def test_create_goal_raises_on_error(self, mock_execute_async):
+        """
+        Test that create_goal raises when the API returns an error.
+        """
+        mock_execute_async.return_value = {
+            "createGoal": {
+                "goal": None,
+                "errors": {
+                    "message": "Invalid goal",
+                    "fieldErrors": None,
+                    "code": None,
+                    "__typename": "PayloadError",
+                },
+                "__typename": "CreateGoalMutation",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.create_goal(name="x", target_amount=1)
 
     @classmethod
     def loadTestData(cls, filename) -> dict:
