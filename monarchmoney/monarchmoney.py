@@ -3751,16 +3751,9 @@ class MonarchMoney(object):
             variables={"input": goal_input},
         )
 
-        errors = result.get("updateGoal", {}).get("errors")
+        errors = (result.get("updateGoal") or {}).get("errors")
         if errors:
-            if errors.get("message"):
-                raise Exception(f"Goal update failed: {errors['message']}")
-            elif errors.get("fieldErrors"):
-                field_errors = [
-                    f"{fe['field']}: {', '.join(fe['messages'])}"
-                    for fe in errors["fieldErrors"]
-                ]
-                raise Exception(f"Goal update failed: {'; '.join(field_errors)}")
+            raise RequestFailedException(errors)
 
         return result
 
