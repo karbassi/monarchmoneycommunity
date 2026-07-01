@@ -280,6 +280,7 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         self.assertIn("request", kwargs)
         self.assertNotIn("document", kwargs)
         self.assertEqual(kwargs["operation_name"], "GetMerchantsSearch")
+        self.assertEqual(kwargs["variable_values"], {"search": "", "limit": 100})
 
         self.assertIsNotNone(result, "Expected result to not be None")
         self.assertEqual(len(result["merchants"]), 2, "Expected 2 merchants")
