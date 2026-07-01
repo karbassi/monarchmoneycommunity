@@ -266,6 +266,29 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginFailedException):
             await self.monarch_money.interactive_login(use_saved_session=False)
 
+    @patch.object(Client, "execute_async")
+    async def test_get_goals(self, mock_execute_async):
+        """
+        Test the get_goals method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="get_goals.json",
+        )
+        result = await self.monarch_money.get_goals()
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "GetGoalsV2")
+
+        self.assertIsNotNone(result, "Expected result to not be None")
+        self.assertEqual(len(result["goalsV2"]), 2, "Expected 2 goals")
+        self.assertEqual(
+            result["goalsV2"][0]["name"],
+            "Emergency Fund",
+            "Expected first goal to be 'Emergency Fund'",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
