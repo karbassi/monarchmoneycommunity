@@ -1,0 +1,16 @@
+{
+  "merchants": [
+    {
+      "id": "190000000000000001",
+      "name": "Amazon",
+      "transactionCount": 142,
+      "__typename": "Merchant"
+    },
+    {
+      "id": "190000000000000002",
+      "name": "Starbucks",
+      "transactionCount": 88,
+      "__typename": "Merchant"
+    }
+  ]
+}
