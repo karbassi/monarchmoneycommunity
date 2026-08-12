@@ -430,6 +430,60 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(RequestFailedException):
             await self.monarch_money.create_goal(name="x", target_amount=1)
 
+    @patch.object(Client, "execute_async")
+    async def test_update_goal(self, mock_execute_async):
+        """
+        Test the update_goal method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            "update_goal.json"
+        )
+
+        result = await self.monarch_money.update_goal(
+            goal_id="220000000000000009",
+            name="New Car Fund",
+            target_amount=35000,
+        )
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "UpdateGoal")
+        goal_input = kwargs["variable_values"]["input"]
+        self.assertEqual(goal_input["id"], "220000000000000009")
+        self.assertEqual(goal_input["name"], "New Car Fund")
+        self.assertEqual(goal_input["targetAmount"], 35000)
+        # Only provided fields are sent
+        self.assertNotIn("description", goal_input)
+
+        self.assertEqual(
+            result["updateGoal"]["goal"]["id"],
+            "220000000000000009",
+            "Expected the updated goal id to be returned",
+        )
+
+    @patch.object(Client, "execute_async")
+    async def test_update_goal_raises_on_error(self, mock_execute_async):
+        """
+        Test that update_goal raises when the API returns an error.
+        """
+        mock_execute_async.return_value = {
+            "updateGoal": {
+                "goal": None,
+                "errors": {
+                    "message": None,
+                    "fieldErrors": None,
+                    "code": "SOME_ERROR_CODE",
+                    "__typename": "PayloadError",
+                },
+                "__typename": "UpdateGoalMutation",
+            }
+        }
+
+        with self.assertRaises(RequestFailedException):
+            await self.monarch_money.update_goal(goal_id="220000000000000009", name="x")
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"

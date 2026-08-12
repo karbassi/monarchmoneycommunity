@@ -271,8 +271,14 @@ As of writing this README, the following methods are supported:
       <td>creates a tag for transactions</td>
     </tr>
     <tr>
+<<<<<<< ours
       <td><code>create_goal</code></td>
       <td>creates a new financial goal</td>
+||||||| base
+=======
+      <td><code>update_goal</code></td>
+      <td>updates an existing financial goal (only the provided fields are sent)</td>
+>>>>>>> theirs
     </tr>
     <tr>
       <td><code>set_transaction_tags</code></td>

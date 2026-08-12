@@ -3861,6 +3861,81 @@ class MonarchMoney(object):
 
         return result
 
+    async def update_goal(
+        self,
+        goal_id: str,
+        name: Optional[str] = None,
+        target_amount: Optional[float] = None,
+        target_date: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Updates an existing financial goal. Only the fields provided are sent.
+
+        :param goal_id: ID of the goal to update
+        :param name: New goal name
+        :param target_amount: New target amount
+        :param target_date: New target date (YYYY-MM-DD format)
+        :param description: New description
+        :return: Updated goal data
+        """
+        query = gql(
+            """
+            mutation UpdateGoal($input: UpdateGoalInput!) {
+                updateGoal(input: $input) {
+                    goal {
+                        id
+                        name
+                        targetAmount
+                        currentAmount
+                        targetDate
+                        description
+                        updatedAt
+                        __typename
+                    }
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        goal_input: Dict[str, Any] = {"id": goal_id}
+        if name is not None:
+            goal_input["name"] = name
+        if target_amount is not None:
+            goal_input["targetAmount"] = target_amount
+        if target_date is not None:
+            goal_input["targetDate"] = target_date
+        if description is not None:
+            goal_input["description"] = description
+
+        result = await self.gql_call(
+            operation="UpdateGoal",
+            graphql_query=query,
+            variables={"input": goal_input},
+        )
+
+        errors = (result.get("updateGoal") or {}).get("errors")
+        if errors:
+            raise RequestFailedException(errors)
+
+        return result
+
     async def gql_call(
         self,
         operation: str,
