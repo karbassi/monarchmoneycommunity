@@ -1,0 +1,18 @@
+{
+  "goalsV2": [
+    {
+      "id": "220000000000000001",
+      "name": "Emergency Fund",
+      "imageStorageProvider": null,
+      "imageStorageProviderId": null,
+      "__typename": "GoalV2"
+    },
+    {
+      "id": "220000000000000002",
+      "name": "Vacation",
+      "imageStorageProvider": null,
+      "imageStorageProviderId": null,
+      "__typename": "GoalV2"
+    }
+  ]
+}
