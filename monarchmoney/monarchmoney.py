@@ -87,6 +87,20 @@ class CaptchaRequiredException(LoginFailedException):
     pass
 
 
+def _to_iso_date(
+    value: Optional[Union[date, datetime, str]],
+) -> Optional[str]:
+    """
+    Normalizes a date, a datetime, or an already-ISO datestring into a
+    YYYY-MM-DD string that can be JSON-encoded for a GraphQL variable.
+    """
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    return value
+
+
 class MonarchMoney(object):
     def __init__(
         self,
@@ -443,14 +457,17 @@ class MonarchMoney(object):
 
     async def get_aggregate_snapshots(
         self,
-        start_date: Optional[date] = None,
-        end_date: Optional[date] = None,
+        start_date: Optional[Union[date, datetime, str]] = None,
+        end_date: Optional[Union[date, datetime, str]] = None,
         account_type: Optional[str] = None,
     ) -> dict:
         """
         Retrieves the daily net value of all accounts, optionally between `start_date` and `end_date`,
         and optionally only for accounts of type `account_type`.
-        Both `start_date` and `end_date` are ISO datestrings, formatted as YYYY-MM-DD
+
+        :param start_date: a `date`, a `datetime`, or an ISO datestring formatted as YYYY-MM-DD.
+            Defaults to 150 years ago today, matching the mobile app.
+        :param end_date: a `date`, a `datetime`, or an ISO datestring formatted as YYYY-MM-DD.
         """
         query = gql(
             """
@@ -468,17 +485,15 @@ class MonarchMoney(object):
             # The mobile app defaults to 150 years ago today
             # The mobile app might have a leap year bug, so instead default to setting day=1
             today = date.today()
-            start_date = date(
-                year=today.year - 150, month=today.month, day=1
-            ).isoformat()
+            start_date = date(year=today.year - 150, month=today.month, day=1)
 
         return await self.gql_call(
             operation="GetAggregateSnapshots",
             graphql_query=query,
             variables={
                 "filters": {
-                    "startDate": start_date,
-                    "endDate": end_date,
+                    "startDate": _to_iso_date(start_date),
+                    "endDate": _to_iso_date(end_date),
                     "accountType": account_type,
                 }
             },

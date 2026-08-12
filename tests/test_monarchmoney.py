@@ -1,6 +1,7 @@
 import os
 import pickle
 import unittest
+from datetime import date, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import json
@@ -316,6 +317,80 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
             kwargs["variable_values"]["filters"]["needsReview"],
             "Expected needsReview filter to be True",
         )
+
+    @patch.object(Client, "execute_async")
+    async def test_get_aggregate_snapshots_accepts_date_objects(
+        self, mock_execute_async
+    ):
+        """
+        Test that date objects are converted to ISO datestrings, as the type hint promises.
+        """
+        mock_execute_async.return_value = {"aggregateSnapshots": []}
+
+        await self.monarch_money.get_aggregate_snapshots(
+            start_date=date(2005, 1, 1),
+            end_date=date(2026, 2, 3),
+        )
+
+        filters = mock_execute_async.call_args.kwargs["variable_values"]["filters"]
+        self.assertEqual(filters["startDate"], "2005-01-01")
+        self.assertEqual(filters["endDate"], "2026-02-03")
+        json.dumps(filters)
+
+    @patch.object(Client, "execute_async")
+    async def test_get_aggregate_snapshots_accepts_datetime_objects(
+        self, mock_execute_async
+    ):
+        """
+        Test that datetime objects are truncated to their date part.
+        """
+        mock_execute_async.return_value = {"aggregateSnapshots": []}
+
+        await self.monarch_money.get_aggregate_snapshots(
+            start_date=datetime(2005, 1, 1, 13, 45, 6),
+            end_date=datetime(2026, 2, 3, 0, 0, 0),
+        )
+
+        filters = mock_execute_async.call_args.kwargs["variable_values"]["filters"]
+        self.assertEqual(filters["startDate"], "2005-01-01")
+        self.assertEqual(filters["endDate"], "2026-02-03")
+        json.dumps(filters)
+
+    @patch.object(Client, "execute_async")
+    async def test_get_aggregate_snapshots_accepts_iso_datestrings(
+        self, mock_execute_async
+    ):
+        """
+        Test that ISO datestrings are passed through unchanged.
+        """
+        mock_execute_async.return_value = {"aggregateSnapshots": []}
+
+        await self.monarch_money.get_aggregate_snapshots(
+            start_date="2005-01-01",
+            end_date="2026-02-03",
+        )
+
+        filters = mock_execute_async.call_args.kwargs["variable_values"]["filters"]
+        self.assertEqual(filters["startDate"], "2005-01-01")
+        self.assertEqual(filters["endDate"], "2026-02-03")
+
+    @patch.object(Client, "execute_async")
+    async def test_get_aggregate_snapshots_defaults(self, mock_execute_async):
+        """
+        Test that the default start date is an ISO datestring and end date stays None.
+        """
+        mock_execute_async.return_value = {"aggregateSnapshots": []}
+
+        await self.monarch_money.get_aggregate_snapshots()
+
+        filters = mock_execute_async.call_args.kwargs["variable_values"]["filters"]
+        today = date.today()
+        self.assertEqual(
+            filters["startDate"],
+            date(year=today.year - 150, month=today.month, day=1).isoformat(),
+        )
+        self.assertIsNone(filters["endDate"])
+        json.dumps(filters)
 
     @patch("builtins.input", return_value="")
     @patch("getpass.getpass", return_value="")
