@@ -3776,6 +3776,91 @@ class MonarchMoney(object):
             graphql_query=query,
         )
 
+    async def create_goal(
+        self,
+        name: str,
+        target_amount: float,
+        target_date: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Creates a new financial goal.
+
+        :param name: Goal name
+        :param target_amount: Target amount for the goal
+        :param target_date: Target date (YYYY-MM-DD format)
+        :param description: Optional goal description
+        :return: Created goal data
+        """
+        query = gql(
+            """
+            mutation CreateGoal($input: CreateGoalInput!) {
+                createGoal(input: $input) {
+                    goal {
+                        id
+                        name
+                        targetAmount
+                        currentAmount
+                        targetDate
+                        description
+                        createdAt
+                        __typename
+                    }
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        goal_input: Dict[str, Any] = {"name": name, "targetAmount": target_amount}
+        if target_date is not None:
+            goal_input["targetDate"] = target_date
+        if description is not None:
+            goal_input["description"] = description
+
+        result = await self.gql_call(
+            operation="CreateGoal",
+            graphql_query=query,
+            variables={"input": goal_input},
+        )
+
+        create_goal = result.get("createGoal", {})
+        errors = create_goal.get("errors")
+        if errors:
+            if errors.get("message"):
+                raise RequestFailedException(
+                    f"Goal creation failed: {errors['message']}"
+                )
+            elif errors.get("fieldErrors"):
+                field_errors = [
+                    f"{fe['field']}: {', '.join(fe['messages'])}"
+                    for fe in errors["fieldErrors"]
+                ]
+                raise RequestFailedException(
+                    f"Goal creation failed: {'; '.join(field_errors)}"
+                )
+            raise RequestFailedException(errors)
+
+        if not create_goal.get("goal"):
+            raise RequestFailedException("Goal creation failed: no goal returned")
+
+        return result
+
     async def gql_call(
         self,
         operation: str,
