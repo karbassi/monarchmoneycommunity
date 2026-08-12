@@ -355,6 +355,40 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(str(ctx.exception), "Invalid MFA code")
 
+    @patch.object(Client, "execute_async")
+    async def test_get_transaction_rules(self, mock_execute_async):
+        """
+        Test the get_transaction_rules method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="get_transaction_rules.json",
+        )
+        result = await self.monarch_money.get_transaction_rules()
+        mock_execute_async.assert_called_once()
+
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "GetTransactionRules")
+
+        self.assertIsNotNone(result, "Expected result to not be None")
+        self.assertEqual(len(result["transactionRules"]), 2, "Expected 2 rules")
+        self.assertEqual(
+            result["transactionRules"][0]["id"],
+            "160000000000000001",
+            "Expected first rule id to be '160000000000000001'",
+        )
+        self.assertEqual(
+            result["transactionRules"][0]["order"],
+            0,
+            "Expected first rule to be ordered first",
+        )
+        self.assertEqual(
+            result["transactionRules"][1]["setCategoryAction"]["name"],
+            "Gas",
+            "Expected second rule to set category 'Gas'",
+        )
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
