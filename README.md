@@ -263,6 +263,10 @@ As of writing this README, the following methods are supported:
       <td>deletes a given transaction by the provided transaction id</td>
     </tr>
     <tr>
+      <td><code>delete_goal</code></td>
+      <td>deletes a financial goal by the provided goal id</td>
+    </tr>
+    <tr>
       <td><code>update_transaction_splits</code></td>
       <td>modifies how a transaction is split (or not)</td>
     </tr>
@@ -271,14 +275,12 @@ As of writing this README, the following methods are supported:
       <td>creates a tag for transactions</td>
     </tr>
     <tr>
-<<<<<<< ours
       <td><code>create_goal</code></td>
       <td>creates a new financial goal</td>
-||||||| base
-=======
+    </tr>
+    <tr>
       <td><code>update_goal</code></td>
       <td>updates an existing financial goal (only the provided fields are sent)</td>
->>>>>>> theirs
     </tr>
     <tr>
       <td><code>set_transaction_tags</code></td>

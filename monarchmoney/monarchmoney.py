@@ -3936,6 +3936,57 @@ class MonarchMoney(object):
 
         return result
 
+    async def delete_goal(self, goal_id: str) -> bool:
+        """
+        Deletes a financial goal.
+
+        :param goal_id: ID of the goal to delete
+        :return: True if successfully deleted
+        """
+        query = gql(
+            """
+            mutation DeleteGoal($id: ID!) {
+                deleteGoal(id: $id) {
+                    deleted
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+            """
+        )
+
+        result = await self.gql_call(
+            operation="DeleteGoal",
+            graphql_query=query,
+            variables={"id": goal_id},
+        )
+
+        delete_goal_result = result.get("deleteGoal") or {}
+
+        errors = delete_goal_result.get("errors")
+        if errors:
+            raise RequestFailedException(errors)
+
+        deleted = delete_goal_result.get("deleted", False)
+        if deleted is not True:
+            raise RequestFailedException("Goal deletion failed or goal not found")
+
+        return deleted
+
     async def gql_call(
         self,
         operation: str,

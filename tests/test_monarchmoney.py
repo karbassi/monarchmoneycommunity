@@ -484,6 +484,26 @@ class TestMonarchMoney(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(RequestFailedException):
             await self.monarch_money.update_goal(goal_id="220000000000000009", name="x")
 
+    @patch.object(Client, "execute_async")
+    async def test_delete_goal(self, mock_execute_async):
+        """
+        Test the delete_goal method.
+        """
+        mock_execute_async.return_value = TestMonarchMoney.loadTestData(
+            filename="delete_goal.json"
+        )
+
+        result = await self.monarch_money.delete_goal("220000000000000009")
+
+        mock_execute_async.assert_called_once()
+        kwargs = mock_execute_async.call_args.kwargs
+        self.assertIn("request", kwargs)
+        self.assertNotIn("document", kwargs)
+        self.assertEqual(kwargs["operation_name"], "DeleteGoal")
+        self.assertEqual(kwargs["variable_values"], {"id": "220000000000000009"})
+
+        self.assertTrue(result, "Expected delete to return True")
+
     @classmethod
     def loadTestData(cls, filename) -> dict:
         filename = f"{os.path.dirname(os.path.realpath(__file__))}/{filename}"
