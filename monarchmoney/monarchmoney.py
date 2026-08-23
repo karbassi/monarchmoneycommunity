@@ -990,6 +990,11 @@ class MonarchMoney(object):
                 transactionsCount
                 __typename
               }
+              businessEntity {
+                id
+                name
+                __typename
+              }
               tags {
                 id
                 name
@@ -1493,6 +1498,11 @@ class MonarchMoney(object):
             account {
               id
               displayName
+              __typename
+            }
+            businessEntity {
+              id
+              name
               __typename
             }
             tags {
