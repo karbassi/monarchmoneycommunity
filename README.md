@@ -198,8 +198,14 @@ As of writing this README, the following methods are supported:
       <td>gets all of the tags configured in the account</td>
     </tr>
     <tr>
+<<<<<<< ours
       <td><code>get_transaction_rules</code></td>
       <td>gets all transaction rules configured in the account, in priority order</td>
+||||||| base
+=======
+      <td><code>preview_transaction_rule</code></td>
+      <td>previews which transactions a rule would affect, before creating it</td>
+>>>>>>> theirs
     </tr>
     <tr>
       <td><code>get_cashflow</code></td>
