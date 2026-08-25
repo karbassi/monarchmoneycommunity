@@ -263,6 +263,10 @@ As of writing this README, the following methods are supported:
       <td>updates recurring merchant settings (frequency, amount, date, active status)</td>
     </tr>
     <tr>
+      <td><code>delete_goal</code></td>
+      <td>deletes a financial goal by the provided goal id</td>
+    </tr>
+    <tr>
       <td><code>delete_transaction</code></td>
       <td>deletes a given transaction by the provided transaction id</td>
     </tr>
