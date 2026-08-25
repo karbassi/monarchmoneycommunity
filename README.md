@@ -198,14 +198,12 @@ As of writing this README, the following methods are supported:
       <td>gets all of the tags configured in the account</td>
     </tr>
     <tr>
-<<<<<<< ours
       <td><code>get_transaction_rules</code></td>
       <td>gets all transaction rules configured in the account, in priority order</td>
-||||||| base
-=======
+    </tr>
+    <tr>
       <td><code>preview_transaction_rule</code></td>
       <td>previews which transactions a rule would affect, before creating it</td>
->>>>>>> theirs
     </tr>
     <tr>
       <td><code>get_cashflow</code></td>
@@ -279,6 +277,10 @@ As of writing this README, the following methods are supported:
     <tr>
       <td><code>create_transaction_tag</code></td>
       <td>creates a tag for transactions</td>
+    </tr>
+    <tr>
+      <td><code>update_transaction_rule_retroactive</code></td>
+      <td>re-submits an existing rule dict so it applies to existing transactions</td>
     </tr>
     <tr>
       <td><code>set_transaction_tags</code></td>
