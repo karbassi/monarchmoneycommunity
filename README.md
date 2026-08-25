@@ -150,6 +150,10 @@ As of writing this README, the following methods are supported:
       <td>gets institutions linked to Monarch Money</td>
     </tr>
     <tr>
+      <td><code>get_merchants</code></td>
+      <td>gets merchants that have transactions in the account, ordered by transaction count</td>
+    </tr>
+    <tr>
       <td><code>get_budgets</code></td>
       <td>all the budgets and the corresponding actual amounts</td>
     </tr>

@@ -3857,6 +3857,34 @@ class MonarchMoney(object):
             graphql_query=query,
         )
 
+    async def get_merchants(self) -> Dict[str, Any]:
+        """
+        Gets the list of merchants that have transactions in the account,
+        ordered by transaction count.
+        """
+        query = gql(
+            """
+            query GetMerchantsSearch($search: String, $limit: Int, $includeIds: [ID!]) {
+                merchants(
+                    search: $search
+                    limit: $limit
+                    orderBy: TRANSACTION_COUNT
+                    includeIds: $includeIds
+                ) {
+                    id
+                    name
+                    transactionCount
+                    __typename
+                }
+            }
+            """
+        )
+        return await self.gql_call(
+            operation="GetMerchantsSearch",
+            graphql_query=query,
+            variables={"search": "", "limit": 100},
+        )
+
     async def gql_call(
         self,
         operation: str,
