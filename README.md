@@ -154,6 +154,10 @@ As of writing this README, the following methods are supported:
       <td>gets merchants that have transactions in the account, ordered by transaction count</td>
     </tr>
     <tr>
+      <td><code>get_edit_merchant</code></td>
+      <td>gets a merchant's editable details, including recurring transaction stream status</td>
+    </tr>
+    <tr>
       <td><code>get_budgets</code></td>
       <td>all the budgets and the corresponding actual amounts</td>
     </tr>
