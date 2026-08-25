@@ -3857,6 +3857,93 @@ class MonarchMoney(object):
             graphql_query=query,
         )
 
+    async def update_transaction_category(
+        self,
+        category_id: str,
+        name: Optional[str] = None,
+        icon: Optional[str] = None,
+        group_id: Optional[str] = None,
+        rollover_enabled: Optional[bool] = None,
+        rollover_type: Optional[str] = None,
+        rollover_start_month: Optional[datetime] = None,
+    ) -> Dict[str, Any]:
+        """
+        Updates an existing transaction category. Only the fields provided are sent.
+
+        :param category_id: The ID of the category to update
+        :param name: New name for the category
+        :param icon: New icon for the category (unicode string or emoji)
+        :param group_id: New group ID for the category
+        :param rollover_enabled: Whether rollover should be enabled
+        :param rollover_type: The budget rollover type
+        :param rollover_start_month: The datetime of the rollover start month
+        """
+        query = gql(
+            """
+            mutation Web_UpdateCategory($input: UpdateCategoryInput!) {
+                updateCategory(input: $input) {
+                    errors {
+                        ...PayloadErrorFields
+                        __typename
+                    }
+                    category {
+                        id
+                        ...CategoryFormFields
+                        __typename
+                    }
+                    __typename
+                }
+            }
+
+            fragment PayloadErrorFields on PayloadError {
+                fieldErrors {
+                    field
+                    messages
+                    __typename
+                }
+                message
+                code
+                __typename
+            }
+
+            fragment CategoryFormFields on Category {
+                id
+                name
+                icon
+                group {
+                    id
+                    name
+                    __typename
+                }
+                rolloverEnabled
+                rolloverType
+                rolloverStartMonth
+                order
+                __typename
+            }
+            """
+        )
+
+        input_data: Dict[str, Any] = {"id": category_id}
+        if name is not None:
+            input_data["name"] = name
+        if icon is not None:
+            input_data["icon"] = icon
+        if group_id is not None:
+            input_data["group"] = group_id
+        if rollover_enabled is not None:
+            input_data["rolloverEnabled"] = rollover_enabled
+        if rollover_type is not None:
+            input_data["rolloverType"] = rollover_type
+        if rollover_start_month is not None:
+            input_data["rolloverStartMonth"] = rollover_start_month.strftime("%Y-%m-%d")
+
+        return await self.gql_call(
+            operation="Web_UpdateCategory",
+            graphql_query=query,
+            variables={"input": input_data},
+        )
+
     async def gql_call(
         self,
         operation: str,
