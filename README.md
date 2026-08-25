@@ -271,8 +271,14 @@ As of writing this README, the following methods are supported:
       <td>creates a tag for transactions</td>
     </tr>
     <tr>
+<<<<<<< ours
       <td><code>create_transaction_rule</code></td>
       <td>creates a transaction rule for automatic categorization and actions</td>
+||||||| base
+=======
+      <td><code>update_transaction_rule</code></td>
+      <td>updates an existing transaction rule (only the provided fields are sent)</td>
+>>>>>>> theirs
     </tr>
     <tr>
       <td><code>set_transaction_tags</code></td>
