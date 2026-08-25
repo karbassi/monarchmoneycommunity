@@ -3857,6 +3857,100 @@ class MonarchMoney(object):
             graphql_query=query,
         )
 
+    async def bulk_update_transactions(
+        self,
+        transaction_ids: List[str],
+        updates: Dict[str, Any],
+        excluded_transaction_ids: Optional[List[str]] = None,
+        all_selected: bool = False,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Bulk update multiple transactions with the same set of changes.
+
+        The ``updates`` dict is Monarch's ``TransactionUpdateParams`` (e.g.
+        ``{"hide": True}`` to hide from reports, or ``{"categoryId": "..."}`` to
+        recategorize).
+
+        :param transaction_ids: Transaction IDs to update
+        :param updates: Updates to apply, e.g. ``{"hide": False}``
+        :param excluded_transaction_ids: Transaction IDs to exclude
+        :param all_selected: Whether all transactions are selected (large ops)
+        :param filters: Filters that were used to select the transactions
+        :return: Bulk update result (success + affectedCount)
+        """
+        if not transaction_ids or not isinstance(transaction_ids, list):
+            raise ValueError("transaction_ids must be a non-empty list")
+        if not updates or not isinstance(updates, dict):
+            raise ValueError("updates must be a non-empty dictionary")
+
+        if excluded_transaction_ids is not None and not isinstance(
+            excluded_transaction_ids, list
+        ):
+            raise ValueError("excluded_transaction_ids must be a list")
+        if not isinstance(all_selected, bool):
+            raise ValueError("all_selected must be a bool")
+        if filters is not None and not isinstance(filters, dict):
+            raise ValueError("filters must be a dictionary")
+
+        excluded = excluded_transaction_ids or []
+        excluded_set = set(excluded)
+        expected_count = sum(1 for t in transaction_ids if t not in excluded_set)
+
+        query = gql(
+            """
+            mutation Common_BulkUpdateTransactionsMutation(
+                $selectedTransactionIds: [ID!]!,
+                $excludedTransactionIds: [ID!],
+                $allSelected: Boolean!,
+                $expectedAffectedTransactionCount: Int!,
+                $updates: TransactionUpdateParams!,
+                $filters: TransactionFilterInput
+            ) {
+                bulkUpdateTransactions(
+                    selectedTransactionIds: $selectedTransactionIds,
+                    excludedTransactionIds: $excludedTransactionIds,
+                    updates: $updates,
+                    allSelected: $allSelected,
+                    expectedAffectedTransactionCount: $expectedAffectedTransactionCount,
+                    filters: $filters
+                ) {
+                    success
+                    affectedCount
+                    errors {
+                        message
+                        __typename
+                    }
+                    __typename
+                }
+            }
+            """
+        )
+
+        variables: Dict[str, Any] = {
+            "selectedTransactionIds": transaction_ids,
+            "excludedTransactionIds": excluded,
+            "updates": updates,
+            "allSelected": all_selected,
+            "expectedAffectedTransactionCount": expected_count,
+        }
+        if filters:
+            variables["filters"] = filters
+
+        result = await self.gql_call(
+            operation="Common_BulkUpdateTransactionsMutation",
+            graphql_query=query,
+            variables=variables,
+        )
+
+        bulk_result = result.get("bulkUpdateTransactions", {})
+        if bulk_result.get("errors"):
+            raise RequestFailedException(f"Bulk update failed: {bulk_result['errors']}")
+        if not bulk_result.get("success"):
+            raise RequestFailedException(bulk_result)
+
+        return bulk_result
+
     async def gql_call(
         self,
         operation: str,
