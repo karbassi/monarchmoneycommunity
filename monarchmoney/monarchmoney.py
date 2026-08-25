@@ -3857,6 +3857,29 @@ class MonarchMoney(object):
             graphql_query=query,
         )
 
+    async def get_goals(self) -> Dict[str, Any]:
+        """
+        Gets financial goals from the account.
+        """
+        query = gql(
+            """
+            query GetGoalsV2 {
+              goalsV2 {
+                id
+                name
+                imageStorageProvider
+                imageStorageProviderId
+                __typename
+              }
+            }
+            """
+        )
+
+        return await self.gql_call(
+            operation="GetGoalsV2",
+            graphql_query=query,
+        )
+
     async def gql_call(
         self,
         operation: str,
